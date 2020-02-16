@@ -4,7 +4,7 @@
 2020-01-27 02:42 output_directory: adverb_k_1_run_3
 2020-01-27 02:42 resume_from_file: 
 2020-01-27 02:42 split: test
-2020-01-27 02:42 data_directory: data/adverb_set_k_1_larger
+2020-01-27 02:42 data_directory: data/compositional_splits
 2020-01-27 02:42 input_vocab_path: training_input_vocab.txt
 2020-01-27 02:42 target_vocab_path: training_target_vocab.txt
 2020-01-27 02:42 generate_vocabularies: False
@@ -55,8 +55,6 @@
 2020-01-27 03:43 Done loading vocabularies.
 2020-01-27 03:43 Converting dataset to tensors...
 2020-01-27 03:43 Done Loading Test set.
-/misc/vlgscratch4/LakeGroup/Laura/gscan_seq2seq/gscanseq2seq/lib/python3.7/site-packages/torch/nn/modules/rnn.py:51: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.3 and num_layers=1
-  "num_layers={}".format(dropout, num_layers))
 2020-01-27 03:43 Total parameters: 440275
 2020-01-27 03:43 situation_encoder.conv_1.weight : [50, 16, 1, 1]
 2020-01-27 03:43 situation_encoder.conv_1.bias : [50]
@@ -91,8 +89,6 @@
 2020-01-27 03:43 attention_decoder.output_to_hidden.weight : [100, 400]
 2020-01-27 03:43 attention_decoder.hidden_to_output.weight : [9, 100]
 2020-01-27 03:43 Training starts..
-/misc/vlgscratch4/LakeGroup/Laura/gscan_seq2seq/seq2seq/seq2seq_model.py:121: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  memory_lengths = torch.tensor(memory_lengths, dtype=torch.long, device=device)
 2020-01-27 03:43 Iteration 00000100, loss   0.5916, accuracy 75.84, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-01-27 03:44 Iteration 00000200, loss   0.3978, accuracy 84.81, exact match  1.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-01-27 03:45 Iteration 00000300, loss   0.3680, accuracy 85.43, exact match  2.50, learning_rate 0.00100, aux. accuracy target pos  0.00

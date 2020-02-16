@@ -4,7 +4,7 @@
 2020-02-03 16:07 output_directory: target_lengths_run_3
 2020-02-03 16:07 resume_from_file: 
 2020-02-03 16:07 split: test
-2020-02-03 16:07 data_directory: data/target_lengths_set_7
+2020-02-03 16:07 data_directory: data/target_length_split
 2020-02-03 16:07 input_vocab_path: training_input_vocab.txt
 2020-02-03 16:07 target_vocab_path: training_target_vocab.txt
 2020-02-03 16:07 generate_vocabularies: False
@@ -27,7 +27,7 @@
 2020-02-03 16:07 output_file_name: predict.json
 2020-02-03 16:07 simple_situation_representation: True
 2020-02-03 16:07 cnn_hidden_num_channels: 50
-2020-02-03 16:07 cnn_kernel_size: 1
+2020-02-03 16:07 cnn_kernel_size: 13
 2020-02-03 16:07 cnn_dropout_p: 0.1
 2020-02-03 16:07 auxiliary_task: False
 2020-02-03 16:07 embedding_dimension: 25
@@ -76,8 +76,6 @@
 2020-02-03 16:25 Done loading vocabularies.
 2020-02-03 16:25 Converting dataset to tensors...
 2020-02-03 16:26 Done Loading Test set.
-/misc/vlgscratch4/LakeGroup/Laura/gscan_seq2seq/gscanseq2seq/lib/python3.7/site-packages/torch/nn/modules/rnn.py:51: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.3 and num_layers=1
-  "num_layers={}".format(dropout, num_layers))
 2020-02-03 16:26 Total parameters: 535975
 2020-02-03 16:26 situation_encoder.conv_1.weight : [50, 16, 1, 1]
 2020-02-03 16:26 situation_encoder.conv_1.bias : [50]
@@ -112,8 +110,6 @@
 2020-02-03 16:26 attention_decoder.output_to_hidden.weight : [100, 400]
 2020-02-03 16:26 attention_decoder.hidden_to_output.weight : [8, 100]
 2020-02-03 16:26 Training starts..
-/misc/vlgscratch4/LakeGroup/Laura/gscan_seq2seq/seq2seq/seq2seq_model.py:121: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  memory_lengths = torch.tensor(memory_lengths, dtype=torch.long, device=device)
 2020-02-03 16:26 Iteration 00000100, loss   0.6628, accuracy 76.55, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-02-03 16:26 Iteration 00000200, loss   0.5908, accuracy 77.69, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-02-03 16:27 Iteration 00000300, loss   0.5736, accuracy 79.04, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00

@@ -4,7 +4,7 @@
 2020-01-29 04:35 output_directory: adverb_k_10_run_3
 2020-01-29 04:35 resume_from_file: 
 2020-01-29 04:35 split: test
-2020-01-29 04:35 data_directory: data/adverb_set_k_1_larger
+2020-01-29 04:35 data_directory: data/compositional_splits
 2020-01-29 04:35 input_vocab_path: training_input_vocab.txt
 2020-01-29 04:35 target_vocab_path: training_target_vocab.txt
 2020-01-29 04:35 generate_vocabularies: False
@@ -132,8 +132,6 @@
 2020-01-29 05:34 Done loading vocabularies.
 2020-01-29 05:34 Converting dataset to tensors...
 2020-01-29 05:34 Done Loading Test set.
-/misc/vlgscratch4/LakeGroup/Laura/gscan_seq2seq/gscanseq2seq/lib/python3.7/site-packages/torch/nn/modules/rnn.py:51: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.3 and num_layers=1
-  "num_layers={}".format(dropout, num_layers))
 2020-01-29 05:34 Total parameters: 440275
 2020-01-29 05:34 situation_encoder.conv_1.weight : [50, 16, 1, 1]
 2020-01-29 05:34 situation_encoder.conv_1.bias : [50]
@@ -168,8 +166,6 @@
 2020-01-29 05:34 attention_decoder.output_to_hidden.weight : [100, 400]
 2020-01-29 05:34 attention_decoder.hidden_to_output.weight : [9, 100]
 2020-01-29 05:34 Training starts..
-/misc/vlgscratch4/LakeGroup/Laura/gscan_seq2seq/seq2seq/seq2seq_model.py:121: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  memory_lengths = torch.tensor(memory_lengths, dtype=torch.long, device=device)
 2020-01-29 05:35 Iteration 00000100, loss   0.5505, accuracy 78.49, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-01-29 05:35 Iteration 00000200, loss   0.3812, accuracy 84.66, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-01-29 05:36 Iteration 00000300, loss   0.3373, accuracy 86.21, exact match  3.00, learning_rate 0.00100, aux. accuracy target pos  0.00
