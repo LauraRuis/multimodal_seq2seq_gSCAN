@@ -8,7 +8,8 @@ This model is detailed in the grounded SCAN paper, and graphically depicted in t
 ## TL;DR
 
 Find all commands to reproduce the experiments in `all_experiments.sh` containing the used parameters and seeds.
-For a detailed file with all parameters, seeds, and other logging per training run, see `documentation/training_logs/`
+For a detailed file with all parameters, seeds, and other logging per training run, see `documentation/training_logs/`.
+Before trainig unzip the data in folder `data`.
 
 ## Getting Started
 
