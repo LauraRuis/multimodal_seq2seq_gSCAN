@@ -15,7 +15,7 @@ import logging
 from copy import deepcopy
 import xlwt
 from xlwt import Workbook
-
+import pdb
 logger = logging.getLogger("GroundedScan")
 
 
@@ -660,18 +660,19 @@ class GroundedScan(object):
     def error_analysis(self, predictions_file: str, output_file: str, save_directory: str):
         assert os.path.exists(predictions_file), "Trying to open a non-existing predictions file."
         error_analysis = {
-            "target_length": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "input_length": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "verb_in_command": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "manner": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "referred_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "referred_size": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "distance_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "direction_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
-            "actual_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "target_length": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "input_length": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "verb_in_command": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "manner": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "referred_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "referred_size": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "distance_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "direction_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "actual_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
         }
         all_accuracies = []
         exact_matches = []
+        position_accuracies = []
         workbook = Workbook()
         with open(predictions_file, 'r') as infile:
             data = json.load(infile)
@@ -681,9 +682,11 @@ class GroundedScan(object):
                 # Get the scores of the current example.
                 accuracy = predicted_example["accuracy"]
                 exact_match = predicted_example["exact_match"]
+                position_accuracy = predicted_example["position_accuracy"]
+
                 all_accuracies.append(accuracy)
                 exact_matches.append(exact_match)
-
+                position_accuracies.append(position_accuracy)
                 # Get the information about the current example.
                 example_information = {
                     "input_length": len(predicted_example["input"]),
@@ -714,42 +717,58 @@ class GroundedScan(object):
                 example_information["direction_to_target"] = situation.direction_to_target
                 example_information["distance_to_target"] = situation.distance_to_target
                 example_information["manner"] = manner
-
                 # Add that information to the analysis.
                 for key in error_analysis.keys():
                     error_analysis[key][example_information[key]]["accuracy"].append(accuracy)
                     error_analysis[key][example_information[key]]["exact_match"].append(exact_match)
+                    error_analysis[key][example_information[key]]["position_accuracy"].append(position_accuracy)
 
         # Write the information to a file and make plots
         with open(output_file, 'w') as outfile:
             outfile.write("Error Analysis\n\n")
             outfile.write(" Mean accuracy: {}\n".format(np.mean(np.array(all_accuracies))))
+            outfile.write(" Mean position accuracy: {}\n".format(np.mean(np.array(position_accuracies))))
             exact_matches_counter = Counter(exact_matches)
             outfile.write(" Num. exact matches: {}\n".format(exact_matches_counter[True]))
             outfile.write(" Num not exact matches: {}\n\n".format(exact_matches_counter[False]))
+
             for key, values in error_analysis.items():
                 sheet = workbook.add_sheet(key)
                 sheet.write(0, 0, key)
                 sheet.write(0, 1, "Num examples")
                 sheet.write(0, 2, "Mean accuracy")
                 sheet.write(0, 3, "Std. accuracy")
-                sheet.write(0, 4, "Exact Match")
-                sheet.write(0, 5, "Not Exact Match")
-                sheet.write(0, 6, "Exact Match Percentage")
+
+                sheet.write(0, 5, "Mean position accuracy")
+
+                sheet.write(0, 6, "Exact Match")
+                sheet.write(0, 7, "Not Exact Match")
+                sheet.write(0, 8, "Exact Match Percentage")
                 outfile.write("\nDimension {}\n\n".format(key))
                 means = {}
+                position_means = {}
                 standard_deviations = {}
+                position_standard_deviations = {}
                 num_examples = {}
                 exact_match_distributions = {}
                 exact_match_relative_distributions = {}
+
                 for i, (item_key, item_values) in enumerate(values.items()):
                     outfile.write("  {}:{}\n\n".format(key, item_key))
                     accuracies = np.array(item_values["accuracy"])
                     mean_accuracy = np.mean(accuracies)
                     means[item_key] = mean_accuracy
+
+                    position_accuracies = np.array(item_values["position_accuracy"])
+                    mean_position_accuracy = np.mean(position_accuracies)
+                    position_means[item_key] = mean_position_accuracy
+
                     num_examples[item_key] = len(item_values["accuracy"])
                     standard_deviation = np.std(accuracies)
                     standard_deviations[item_key] = standard_deviation
+
+                    position_standard_deviation = np.std(position_accuracies)
+                    position_standard_deviations[item_key] = position_standard_deviation
                     exact_match_distribution = Counter(item_values["exact_match"])
                     exact_match_distributions[item_key] = exact_match_distribution
                     exact_match_relative_distributions[item_key] = exact_match_distribution[True] / (
@@ -759,6 +778,12 @@ class GroundedScan(object):
                     outfile.write("    Min. accuracy: {}\n".format(np.min(accuracies)))
                     outfile.write("    Max. accuracy: {}\n".format(np.max(accuracies)))
                     outfile.write("    Std. accuracy: {}\n".format(standard_deviation))
+                   
+                    outfile.write("    Mean position accuracy: {}\n".format(mean_position_accuracy))
+                    outfile.write("    Min. accuracy: {}\n".format(np.min(position_accuracies)))
+                    outfile.write("    Max. accuracy: {}\n".format(np.max(position_accuracies)))
+                    outfile.write("    Std. accuracy: {}\n".format(position_standard_deviation))
+
                     outfile.write("    Num. exact match: {}\n".format(exact_match_distribution[True]))
                     outfile.write("    Num. not exact match: {}\n\n".format(exact_match_distribution[False]))
                     sheet.write(i + 1, 0, item_key)
@@ -766,12 +791,18 @@ class GroundedScan(object):
                     sheet.write(i + 1, 2, mean_accuracy)
                     sheet.write(i + 1, 3, standard_deviation)
                     sheet.write(i + 1, 4, exact_match_distribution[True])
-                    sheet.write(i + 1, 5, exact_match_distribution[False])
-                    sheet.write(i + 1, 6, exact_match_distribution[True] / (
+
+                    sheet.write(i + 1, 5, mean_position_accuracy)
+
+                    sheet.write(i + 1, 6, exact_match_distribution[False])
+                    sheet.write(i + 1, 7, exact_match_distribution[True] / (
                             exact_match_distribution[False] + exact_match_distribution[True]))
                 outfile.write("\n\n\n")
                 bar_plot(means, title=key, save_path=os.path.join(save_directory, key + '_accuracy'),
                          errors=standard_deviations, y_axis_label="accuracy")
+                bar_plot(position_means, title=key, save_path=os.path.join(save_directory, key + '_position_accuracy'),
+                         errors=position_standard_deviations, y_axis_label="position_accuracy")
+
                 bar_plot(exact_match_relative_distributions, title=key, save_path=os.path.join(
                     save_directory, key + '_exact_match_rel'),
                          errors={}, y_axis_label="Exact Match Percentage")

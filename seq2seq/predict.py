@@ -8,7 +8,7 @@ import json
 
 from seq2seq.helpers import sequence_accuracy
 from seq2seq.gSCAN_dataset import GroundedScanDataset
-
+import pdb
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def predict_and_save(dataset: GroundedScanDataset, model: nn.Module, output_file
         with torch.no_grad():
             i = 0
             for (input_sequence, derivation_spec, situation_spec, output_sequence, target_sequence,
-                 attention_weights_commands, attention_weights_situations, _) in predict(
+                 attention_weights_commands, attention_weights_situations, position_accuracy) in predict(
                     dataset.get_data_iterator(batch_size=1), model=model, max_decoding_steps=max_decoding_steps,
                     pad_idx=dataset.target_vocabulary.pad_idx, sos_idx=dataset.target_vocabulary.sos_idx,
                     eos_idx=dataset.target_vocabulary.eos_idx):
@@ -47,7 +47,8 @@ def predict_and_save(dataset: GroundedScanDataset, model: nn.Module, output_file
                                "attention_weights_input": attention_weights_commands,
                                "attention_weights_situation": attention_weights_situations,
                                "accuracy": accuracy,
-                               "exact_match": True if accuracy == 100 else False})
+                               "exact_match": True if accuracy == 100 else False,
+                               "position_accuracy":  position_accuracy})
         logger.info("Wrote predictions for {} examples.".format(i))
         json.dump(output, outfile, indent=4)
     return output_file_path
