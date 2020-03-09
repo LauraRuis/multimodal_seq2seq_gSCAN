@@ -3,7 +3,7 @@
 This repository contains a multi-modal neural sequence-to-sequence model with a CNN to parse a world state and joint attention over input instruction sequences and world states.
 This model is detailed in the grounded SCAN paper, and graphically depicted in the following image:
 
-![Model](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/documentation/model_bahdanau.png?token=AGNMPFADRSYFWJRRS4CTET26KKBJ4)
+![Model](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/documentation/model_bahdanau.png?token=AGNMPFBNLBC3MIS3SQKJAXK6N7NYW)
 
 ## TL;DR
 
