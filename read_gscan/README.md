@@ -6,7 +6,7 @@ Unzip one of the data folders in `./data`, e.g. `compositional_splits`.
 To obtain the parsed dataset in a file named "parsed_dataset.txt", run:
 ```bash
 >>> python -m pip install numpy
->>> python read_gscan.py --data_path=./data/compositional_splits/dataset.txt --save_data --output_file=parsed_dataset.txt
+>>> python read_gscan.py --dataset_path=./data/compositional_splits/dataset.txt --save_data --output_file=parsed_dataset.txt
 ```
 
 Another possibility is to import the function `data_loader` in another project and use the data directly in a model.
@@ -17,7 +17,7 @@ Another possibility is to import the function `data_loader` in another project a
 NB: if you want to load `./data/compositional_splits/dataset.txt` note that it is 2 GB.
 
 # Load grounded SCAN data set.
-Specify the path to the `dataset.txt` file as argument `--data_path`.
+Specify the path to the `dataset.txt` file as argument `--dataset_path`.
 
 If you want to save the dataset in a new file with parsed situation representation, set the flag `--save_data`.
 
