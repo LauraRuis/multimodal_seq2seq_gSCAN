@@ -47,7 +47,7 @@ To get a feel of the data used in the paper, we can look at the data in the fold
 <details open>
 <summary>Want to ruin the surprise?</summary>
  <br>
-```
+```json
 {
                 "command": "walk,to,a,red,circle",
                 "meaning": "walk,to,a,red,circle",
