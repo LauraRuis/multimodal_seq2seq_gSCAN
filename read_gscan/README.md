@@ -44,6 +44,9 @@ direction the agent is looking in ([1 0 0 0] fo east).
 
 To get a feel of the data used in the paper, we can look at the data in the folder `../demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `../demo_dataset/dataset.txt` we can see that the first example is the following: 
 
+<details open>
+<summary>Want to ruin the surprise?</summary>
+ <br>
 ```
 {
                 "command": "walk,to,a,red,circle",
@@ -128,3 +131,4 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                 "referred_target": " red circle"
             }
 ```
+</details>
