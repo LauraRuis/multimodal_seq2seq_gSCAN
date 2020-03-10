@@ -42,7 +42,7 @@ direction the agent is looking in ([1 0 0 0] fo east).
 
 # Demonstration
 
-To get a feel of the data used in the paper, we can look at the data in the folder `../demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `../demo_dataset/dataset.txt` we can see that the first example if we follow the keys "examples" and "situational_1" is the following: 
+To get a feel of the data used in the paper, we can look at the data in the folder `../data/demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `../data/demo_dataset/dataset.txt` we can see that the first example if we follow the keys "examples" and "situational_1" is the following: 
 
 <details open>
 <summary>The first data example in the split called "situational_1" (i.e., novel direction) set. Click to open/close.</summary>
