@@ -142,7 +142,7 @@ This example is visualized by the following animation:
 
 ![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_1/movie.gif)
 
-Is we want to parse the demo_dataset independent from the code GroundedScan we can the dataset at `parsed_dataset.txt` of this folder, where this particular example in represented by:
+Is we want to parse the demo_dataset independent from the code GroundedScan we get the dataset at `parsed_dataset.txt` of this folder (with command `python read_gscan.py --dataset_path=../data/demo_dataset/dataset.txt --save_data`), where this particular example in represented by:
 
 <details open>
 <summary>The parsed data example. Click to open/close, explanation below. </summary>
