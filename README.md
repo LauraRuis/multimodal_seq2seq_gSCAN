@@ -328,7 +328,7 @@ The code will save the best model in `output/model_best.pth.tar` (the directory 
 ```python3.7 -m seq2seq --mode=test --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --resume_from_file=output/model_best.pth.tar --splits=test,visual,situational_1 --max_decoding_steps=50```
 
 <details open>
-<summary>This produces the followig output: (click to open/close): </summary>
+<summary>This produces the following output: (click to open/close): </summary>
 <p>
  
 ```python
