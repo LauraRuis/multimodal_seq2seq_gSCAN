@@ -45,7 +45,7 @@ direction the agent is looking in ([1 0 0 0] fo east).
 To get a feel of the data used in the paper, we can look at the data in the folder `../demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `../demo_dataset/dataset.txt` we can see that the first example if we follow the keys "examples" and "situational_1" is the following: 
 
 <details open>
-<summary>The first data example in the split called "situational_1" (i.e., novel direction) set</summary>
+<summary>The first data example in the split called "situational_1" (i.e., novel direction) set. Click to open/close.</summary>
 <p>
  
 ```javascript
@@ -145,7 +145,7 @@ This example is visualized by the following animation:
 Is we want to parse the demo_dataset independent from the code GroundedScan, this particular example in represented by:
 
 <details open>
-<summary>The parsed data example </summary>
+<summary>The parsed data example. Click to open/close, explanation below. </summary>
 <p>
  
 ```javascript
