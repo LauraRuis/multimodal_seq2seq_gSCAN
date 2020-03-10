@@ -457,6 +457,6 @@ The parsed data only retains the important keys for training a computational mod
 
 [size 1, size 2, size 3, size 4, yellow, green, red, blue, circle, square, agent, east, south, west, north]
 
-In the first vector you can see the representation of the yellow circle of size 4 in the top-left corner (row and grid 0) of the world.
+In the first vector you can see the representation of the yellow circle of size 4 in the top-left corner (row and grid 0) of the world. Namely the following vector: [0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]`
 
 
