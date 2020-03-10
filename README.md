@@ -323,7 +323,7 @@ The command mentioned earlier for training, will generate the following output (
 
 ## Testing the saved model
 
-The training command has saved the best model in `output/model_best.pth.tar`. We can now use the model for predictions with the following command (lets do predictions for the test set, the visual split (i.e., 'red squares'), and the situational_1 split (i.e., 'novel direction')): 
+The training command has saved the best model in `output/model_best.pth.tar` (the directory specified by `--output_directory`). We can now use the model for predictions with the following command (lets do predictions for the test set, the visual split (i.e., 'red squares'), and the situational_1 split (i.e., 'novel direction')): 
 
 ```python3.7 -m seq2seq --mode=test --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --resume_from_file=output/model_best.pth.tar --splits=test,visual,situational_1 --max_decoding_steps=50```
 
@@ -444,3 +444,286 @@ The training command has saved the best model in `output/model_best.pth.tar`. We
 
 </p>
 </details>
+
+Now the folder specified with `--output_directory` `output` contains the predictions in the files `test_predict.json`, `visual_predict.json`, and `situational_1_predict.json`. 
+ 
+ <details open>
+<summary>For example, the first prediction of `situational_1_predict.json`
+ when this example was run is the following: (click to open/close): </summary>
+<p>
+ 
+```javascript
+ {
+        "input": [
+            "walk",
+            "to",
+            "a",
+            "red",
+            "circle"
+        ],
+        "prediction": [
+            "turn left",
+            "turn left",
+            "walk",
+            "turn right",
+            "walk"
+        ],
+        "derivation": [
+            "NP -> NN,NP -> JJ NP,DP -> 'a' NP,VP -> VV_intrans 'to' DP,ROOT -> VP;T:walk,NT:VV_intransitive -> walk,T:to,T:a,T:red,NT:JJ -> red,T:circle,NT:NN -> circle"
+        ],
+        "target": [
+            "turn left",
+            "turn left",
+            "walk",
+            "turn left",
+            "walk"
+        ],
+        "situation": [
+            {
+                "grid_size": 4,
+                "agent_position": {
+                    "row": "2",
+                    "column": "3"
+                },
+                "agent_direction": 0,
+                "target_object": {
+                    "vector": "1000101000",
+                    "position": {
+                        "row": "3",
+                        "column": "2"
+                    },
+                    "object": {
+                        "shape": "circle",
+                        "color": "red",
+                        "size": "1"
+                    }
+                },
+                "distance_to_target": "2",
+                "direction_to_target": "sw",
+                "placed_objects": {
+                    "0": {
+                        "vector": "1000101000",
+                        "position": {
+                            "row": "3",
+                            "column": "2"
+                        },
+                        "object": {
+                            "shape": "circle",
+                            "color": "red",
+                            "size": "1"
+                        }
+                    },
+                    "1": {
+                        "vector": "0010011000",
+                        "position": {
+                            "row": "2",
+                            "column": "1"
+                        },
+                        "object": {
+                            "shape": "square",
+                            "color": "red",
+                            "size": "3"
+                        }
+                    },
+                    "2": {
+                        "vector": "0100010001",
+                        "position": {
+                            "row": "1",
+                            "column": "2"
+                        },
+                        "object": {
+                            "shape": "square",
+                            "color": "blue",
+                            "size": "2"
+                        }
+                    },
+                    "3": {
+                        "vector": "0001010100",
+                        "position": {
+                            "row": "1",
+                            "column": "1"
+                        },
+                        "object": {
+                            "shape": "square",
+                            "color": "green",
+                            "size": "4"
+                        }
+                    }
+                },
+                "carrying_object": null
+            }
+        ],
+        "attention_weights_input": [
+            [
+                [
+                    0.1347028911113739,
+                    0.13788217306137085,
+                    0.1408216804265976,
+                    0.14514818787574768,
+                    0.1460469663143158,
+                    0.1525878757238388,
+                    0.14281028509140015
+                ]
+            ],
+            [
+                [
+                    0.13317446410655975,
+                    0.13619999587535858,
+                    0.13789284229278564,
+                    0.1448119431734085,
+                    0.14822974801063538,
+                    0.15437810122966766,
+                    0.14531295001506805
+                ]
+            ],
+            [
+                [
+                    0.12259363383054733,
+                    0.130519300699234,
+                    0.13570959866046906,
+                    0.14702339470386505,
+                    0.1503848433494568,
+                    0.1618456244468689,
+                    0.15192364156246185
+                ]
+            ],
+            [
+                [
+                    0.1116199865937233,
+                    0.12276129424571991,
+                    0.13262240588665009,
+                    0.14890818297863007,
+                    0.15098372101783752,
+                    0.17331182956695557,
+                    0.15979261696338654
+                ]
+            ],
+            [
+                [
+                    0.12063928693532944,
+                    0.12789921462535858,
+                    0.13446803390979767,
+                    0.1472683697938919,
+                    0.15150536596775055,
+                    0.1624067723751068,
+                    0.15581294894218445
+                ]
+            ]
+        ],
+        "attention_weights_situation": [
+            [
+                [
+                    0.03381653502583504,
+                    0.05744897574186325,
+                    0.07042934745550156,
+                    0.055202607065439224,
+                    0.028679050505161285,
+                    0.04473859816789627,
+                    0.055586643517017365,
+                    0.05163794383406639,
+                    0.025743210688233376,
+                    0.05598282441496849,
+                    0.11211208254098892,
+                    0.10360352694988251,
+                    0.030320605263113976,
+                    0.09432610124349594,
+                    0.13378305733203888,
+                    0.04658888652920723
+                ]
+            ],
+            [
+                [
+                    0.030180441215634346,
+                    0.054645419120788574,
+                    0.06971719115972519,
+                    0.05268885940313339,
+                    0.025461191311478615,
+                    0.042079515755176544,
+                    0.0535975806415081,
+                    0.05010606721043587,
+                    0.02283935621380806,
+                    0.05391918495297432,
+                    0.11132807284593582,
+                    0.11724720150232315,
+                    0.030814023688435555,
+                    0.10024137794971466,
+                    0.14098992943763733,
+                    0.04414454475045204
+                ]
+            ],
+            [
+                [
+                    0.02856718935072422,
+                    0.04643532261252403,
+                    0.06758377701044083,
+                    0.0482352077960968,
+                    0.02746320702135563,
+                    0.03763550519943237,
+                    0.04657653719186783,
+                    0.04258711263537407,
+                    0.026288190856575966,
+                    0.043896254152059555,
+                    0.10679258406162262,
+                    0.12164262682199478,
+                    0.04711860045790672,
+                    0.11570236086845398,
+                    0.1548127979040146,
+                    0.03866272047162056
+                ]
+            ],
+            [
+                [
+                    0.02986297383904457,
+                    0.04268667474389076,
+                    0.06872523576021194,
+                    0.048437826335430145,
+                    0.030498236417770386,
+                    0.037579216063022614,
+                    0.04487932100892067,
+                    0.041791316121816635,
+                    0.030200282111763954,
+                    0.04008848965167999,
+                    0.09280946850776672,
+                    0.13625997304916382,
+                    0.057449717074632645,
+                    0.12127335369586945,
+                    0.13907437026500702,
+                    0.03838350996375084
+                ]
+            ],
+            [
+                [
+                    0.022747689858078957,
+                    0.03625047951936722,
+                    0.06052326411008835,
+                    0.045950260013341904,
+                    0.026497578248381615,
+                    0.035583287477493286,
+                    0.045341309159994125,
+                    0.04634739086031914,
+                    0.028446927666664124,
+                    0.037730518728494644,
+                    0.08468840271234512,
+                    0.18837516009807587,
+                    0.08500255644321442,
+                    0.10905778408050537,
+                    0.11035732179880142,
+                    0.03710004314780235
+                ]
+            ]
+        ],
+        "accuracy": 80.0,
+        "exact_match": false,
+        "position_accuracy": 0
+    }
+ ```
+
+</p>
+</details>
+
+These predictions also contain the attentio weights for the attention over the commands as well as the attention over the world state. The .json files with the predictions can be passed to the modes `error_analysis`, and `execute_commands` in the [groundedSCAN repository](https://github.com/LauraRuis/groundedSCAN). If we place `situational_1_predict.json` in the folder specified by `--output_directory` of that dataset (for instructions see the README in the groundedSCAN repo under Using the repository -- Execute commands) and we run the following command with that repository:
+
+```>> python3.7 -m GroundedScan --mode=execute_commands --load_dataset_from=data/demo_dataset/dataset.txt --predicted_commands_file=situational_1_predict.json```
+
+We created the animated visualizations with attention, like the one for our running example: 
+
