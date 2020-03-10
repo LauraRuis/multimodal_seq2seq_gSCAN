@@ -38,7 +38,7 @@ direction the agent is looking in ([1 0 0 0] fo east).
 
 **Dimensions**:
 
-[size 1, size 2, size 3, size 4, green, red, blue, circle, square, cylinder, agent, east, south, west, north]
+[size 1, size 2, size 3, size 4, green, red, yellow, blue, circle, square, cylinder, agent, east, south, west, north]
 
 # Demonstration
 
@@ -452,5 +452,11 @@ Is we want to parse the demo_dataset independent from the code GroundedScan, thi
 </p>
 </details>
 
+The parsed data only retains the important keys for training a computational model, namely the input pair *"input"* and *"situation"*, and the target sequence *"target"*. The situation representation is instead of a sparse representation of the available objects represented by the, in this case, 4 x 4 x 15 sized matrix of the grid world, where the 15 dimensions are the following:
+
+
+[size 1, size 2, size 3, size 4, yellow, green, red, blue, circle, square, agent, east, south, west, north]
+
+In the first vector you can see the representation of the yellow circle of size 4 in the top-left corner (row and grid 0) of the world.
 
 
