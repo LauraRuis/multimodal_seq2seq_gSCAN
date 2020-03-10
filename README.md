@@ -721,7 +721,7 @@ Now the folder specified with `--output_directory` `output` contains the predict
 </p>
 </details>
 
-These predictions also contain the attentio weights for the attention over the commands as well as the attention over the world state. The .json files with the predictions can be passed to the modes `error_analysis`, and `execute_commands` in the [groundhttps://github.com/LauraRuis/multimodal_seq2seq_gSCAN/blob/master/README.mdedSCAN repository](https://github.com/LauraRuis/groundedSCAN). If we place `situational_1_predict.json` in the folder specified by `--output_directory` of that dataset (for instructions see the README in the groundedSCAN repo under Using the repository -- Execute commands) and we run the following command with that repository:
+These predictions also contain the attentio weights for the attention over the commands as well as the attention over the world state. The .json files with the predictions can be passed to the modes `error_analysis`, and `execute_commands` in the [groundedSCAN repository](https://github.com/LauraRuis/groundedSCAN). If we place `situational_1_predict.json` in the folder specified by `--output_directory` of that dataset (for instructions see the README in the groundedSCAN repo under Using the repository -- Execute commands) and we run the following command with that repository:
 
 ```>> python3.7 -m GroundedScan --mode=execute_commands --load_dataset_from=data/demo_dataset/dataset.txt --predicted_commands_file=situational_1_predict.json```
 
