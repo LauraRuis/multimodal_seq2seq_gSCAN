@@ -176,15 +176,15 @@ We can train the baseline model from the paper on this demo dataset with the fol
 
 ```>> python3.7 -m seq2seq --mode=train --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --max_training_iterations=1000 --training_batch_size=5 --print_every=100 --evaluate_every=500 --generate_vocabularies```
 
-This will parse the file `data/demo_dataset/dataset.txt` and extract the trainnig set and development set for training, and convert the to a representation that can be parsed by numerical methods. The situation representation is parsed by the code in `seq2seq/gSCAN_dataset.py`. For the example shown in the previous subsection, the world state will be represented by a 4 x 4 x 15 sized matrix of the grid world, where the 15 dimensions are the following:
+This will parse the file `data/demo_dataset/dataset.txt` and convert the training and development set to tensors that can be parsed by numerical methods. The situation representation (world state) is parsed by the code in `seq2seq/gSCAN_dataset.py`. For the data example we've used so far in this demo, the world state will be represented by a 4 x 4 x 15 sized matrix of the grid world, where the 15 dimensions are the following:
 
 [size 1, size 2, size 3, size 4, circle, square, red, green, yellow, blue, agent, east, south, west, north]
 
-The first vector representing one grid cell, namely the green square of size 4 in row 1 and column 1 (starting at 0) of the world, will be the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`.
+The first grid cell containing an object, namely the green square of size 4 in row 1 and column 1 (starting at 0) of the world, will be represented by the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`.
 
 ### Training a model
 
-The command mentioned earlier for training, will generate the following output (containing all set parameters, and logging the training progress in terms of accuracy, loss, and exact match. The evaluation cycles are done on the development set.): 
+The command mentioned earlier for training, will generate output containing all parameters, and logs the training progress in terms of accuracy, loss, and exact match. The evaluation cycles are done on the development set.: 
 
 <details open>
 <summary>The training command will produce the following output (click to open/close): </summary>
@@ -323,7 +323,7 @@ The command mentioned earlier for training, will generate the following output (
 
 ### Testing the saved model
 
-The training command has saved the best model in `output/model_best.pth.tar` (the directory specified by `--output_directory`). We can now use the model for predictions with the following command (lets do predictions for the test set, the visual split (i.e., 'red squares'), and the situational_1 split (i.e., 'novel direction')): 
+The code will save the best model in `output/model_best.pth.tar` (the directory specified by `--output_directory`). We can now use this model for predictions with the following command (lets do predictions for the test set, the visual split (i.e., 'red squares'), and the situational_1 split (i.e., 'novel direction')): 
 
 ```python3.7 -m seq2seq --mode=test --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --resume_from_file=output/model_best.pth.tar --splits=test,visual,situational_1 --max_decoding_steps=50```
 
@@ -448,8 +448,7 @@ The training command has saved the best model in `output/model_best.pth.tar` (th
 Now the folder specified with `--output_directory` `output` contains the predictions in the files `test_predict.json`, `visual_predict.json`, and `situational_1_predict.json`. 
  
  <details open>
-<summary>For example, the first prediction of `situational_1_predict.json`
- when this example was run is the following: (click to open/close): </summary>
+<summary>For example, the first prediction of `situational_1_predict.json` when this example was run is the following: (click to open/close): </summary>
 <p>
  
 ```javascript
@@ -721,13 +720,13 @@ Now the folder specified with `--output_directory` `output` contains the predict
 </p>
 </details>
 
-These predictions also contain the attentio weights for the attention over the commands as well as the attention over the world state. The .json files with the predictions can be passed to the modes `error_analysis`, and `execute_commands` in the [groundedSCAN repository](https://github.com/LauraRuis/groundedSCAN). If we place `situational_1_predict.json` in the folder specified by `--output_directory` of that dataset (for instructions see the README in the groundedSCAN repo under Using the repository -- Execute commands) and we run the following command with that repository:
+The predictions also contain the attention weights over the commands as well as over the world state. The .json files with the predictions can be passed to the parameter `--predicted_commands_file` in the modes `error_analysis`, and `execute_commands` in the [groundedSCAN repository](https://github.com/LauraRuis/groundedSCAN). We place `situational_1_predict.json` in the folder specified by `--output_directory` of that repo (for instructions see [the README in the groundedSCAN repo](https://github.com/LauraRuis/groundedSCAN#execute-commands)) and we run the following command:
 
 ```>> python3.7 -m GroundedScan --mode=execute_commands --load_dataset_from=data/demo_dataset/dataset.txt --predicted_commands_file=situational_1_predict.json```
 
-We created the animated visualizations with attention, like the one for our running example: 
+This created the animated visualizations with attention, like the one for our running example: 
 
 ![predicted_ex](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/documentation/prediction_example.gif)
 
-Which is not exactly correct, but we didn't train for that long :). The darker the grid cell, the higher the attention to that cell. In this example the attention doesn't see to know exactly what to do, but for converged models with correct examples the attention is usually dark on the target object.
+Which is not exactly correct, but we didn't train for that long :). The darker the grid cell, the more the model attends to that cell. In this example the attention does not seem very helpful, but for converged models with correct predictions the attention is usually dark on the cell containing the target object.
 
