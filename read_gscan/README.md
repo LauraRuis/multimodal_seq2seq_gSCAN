@@ -138,5 +138,7 @@ To get a feel of the data used in the paper, we can look at the data in the fold
 
 This data example contains the command, or input  instruction, 'walk to the red circle', that in this case based on the situation maps to the target command sequence of "target_commands": "turn left,turn left,walk,turn left,walk". The data example contains the situation representation, or world state, at the key "situation", and it also contains some additional information that is useful in parsing it back to the representation it was generated from, namely the "derivation" containing the depth-first extracted constituency tree, the "meaning" containing the semantic meaning of the input instruction. This is only useful if we would have generated the benchmark with nonsensical words, in that case we would need a semantic representation that can be parsed by humans. This example is visualized by the following animation:
 
+![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_0/movie.gif)
+
 
 
