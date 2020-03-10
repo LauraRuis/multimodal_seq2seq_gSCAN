@@ -321,7 +321,7 @@ The command mentioned earlier for training, will generate the following output (
 </details>
 
 
-## Testing the saved model
+### Testing the saved model
 
 The training command has saved the best model in `output/model_best.pth.tar` (the directory specified by `--output_directory`). We can now use the model for predictions with the following command (lets do predictions for the test set, the visual split (i.e., 'red squares'), and the situational_1 split (i.e., 'novel direction')): 
 
@@ -726,4 +726,8 @@ These predictions also contain the attentio weights for the attention over the c
 ```>> python3.7 -m GroundedScan --mode=execute_commands --load_dataset_from=data/demo_dataset/dataset.txt --predicted_commands_file=situational_1_predict.json```
 
 We created the animated visualizations with attention, like the one for our running example: 
+
+![predicted_ex](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/documentation/prediction_example.gif)
+
+Which is not exactly correct, but we didn't train for that long :). The darker the grid cell, the higher the attention to that cell. In this example the attention doesn't see to know exactly what to do, but for converged models with correct examples the attention is usually dark on the target object.
 
