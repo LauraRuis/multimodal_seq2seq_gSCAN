@@ -9,7 +9,7 @@ This model is detailed in the grounded SCAN paper, and graphically depicted in t
 
 Find all commands to reproduce the experiments in `all_experiments.sh` containing the used parameters and seeds.
 For a detailed file with all parameters, seeds, and other logging per training run, see `documentation/training_logs/`.
-Before trainig unzip the data in folder `data`.
+Before trainig unzip the data in folder `data`. For a demo on training a small model on a dummy dataset, refer to the last section of this readme headed 'demo'.
 
 ## Getting Started
 
@@ -64,3 +64,7 @@ See file `all_experiments.sh` for all commands that were run to train the models
 
 For all training logs of all models trained in the paper see `documentation/training_logs/..`.
 These fills contain printed all hyperparameters, as well as the training and development performance over time and the seeds used in training.
+
+## Demo: training a model on a dummy dataset
+
+
