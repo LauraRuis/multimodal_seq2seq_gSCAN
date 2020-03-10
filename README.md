@@ -727,3 +727,7 @@ These predictions also contain the attentio weights for the attention over the c
 
 We created the animated visualizations with attention, like the one for our running example: 
 
+![predicted_ex](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/documentation/prediction_example.gif)
+
+Which is not exactly correct, but we didn't train for that long :). The darker the grid cell, the higher the attention to that cell. In this example the attention doesn't see to know exactly what to do, but for converged models with correct examples the attention is usually dark on the target object.
+
