@@ -66,6 +66,7 @@ For all training logs of all models trained in the paper see `documentation/trai
 These fills contain printed all hyperparameters, as well as the training and development performance over time and the seeds used in training.
 
 ## Demo: training a model on a dummy dataset
+You can try this demo on almost any machine, it requires no GPU and runs in a couple of seconds on a laptop with a CPU containing 8 GB RAM.
 
 ### Loading the data
 To get a feel of the data used in the paper, we can look at the data in the folder `data/demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `data/demo_dataset/dataset.txt` we can see that the first example if we follow the keys "examples" and "situational_1" is the following: 
@@ -82,15 +83,15 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                 "situation": {
                     "grid_size": 4,
                     "agent_position": {
-                        "row": "0",
-                        "column": "1"
+                        "row": "2",
+                        "column": "3"
                     },
                     "agent_direction": 0,
                     "target_object": {
                         "vector": "1000101000",
                         "position": {
-                            "row": "1",
-                            "column": "0"
+                            "row": "3",
+                            "column": "2"
                         },
                         "object": {
                             "shape": "circle",
@@ -104,8 +105,8 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                         "0": {
                             "vector": "1000101000",
                             "position": {
-                                "row": "1",
-                                "column": "0"
+                                "row": "3",
+                                "column": "2"
                             },
                             "object": {
                                 "shape": "circle",
@@ -114,39 +115,39 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                             }
                         },
                         "1": {
-                            "vector": "0010010001",
+                            "vector": "0010011000",
                             "position": {
-                                "row": "0",
-                                "column": "3"
+                                "row": "2",
+                                "column": "1"
                             },
                             "object": {
                                 "shape": "square",
-                                "color": "blue",
+                                "color": "red",
                                 "size": "3"
                             }
                         },
                         "2": {
-                            "vector": "0001100010",
+                            "vector": "0100010001",
                             "position": {
-                                "row": "0",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "yellow",
-                                "size": "4"
-                            }
-                        },
-                        "3": {
-                            "vector": "0100010100",
-                            "position": {
-                                "row": "3",
+                                "row": "1",
                                 "column": "2"
                             },
                             "object": {
                                 "shape": "square",
-                                "color": "green",
+                                "color": "blue",
                                 "size": "2"
+                            }
+                        },
+                        "3": {
+                            "vector": "0001010100",
+                            "position": {
+                                "row": "1",
+                                "column": "1"
+                            },
+                            "object": {
+                                "shape": "square",
+                                "color": "green",
+                                "size": "4"
                             }
                         }
                     },
@@ -166,149 +167,151 @@ This data example contains the *"command"*, or input  instruction, 'walk to the 
 
 This example is visualized by the following animation:
 
-![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_0/movie.gif)
+![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_1/movie.gif)
 
 For a way to parse the dataset independently of the code in `GroundedScan`, refer to the folder `read_gscan` which has its own `readme.md` with a demonstration. 
 
 We can train the baseline model from the paper on this demo dataset with the following command:
 
 
-```>> python3.7 -m seq2seq --mode=train --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --max_training_iterations=10 --training_batch_size=5 --print_every=1 --evaluate_every=5 --generate_vocabularies```
+```>> python3.7 -m seq2seq --mode=train --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --max_training_iterations=500 --training_batch_size=5 --print_every=100 --evaluate_every=500 --generate_vocabularies```
 
 This will parse the file `data/demo_dataset/dataset.txt` and extract the trainnig set and development set for training, and convert the to a representation that can be parsed by numerical methods. The situation representation is parsed by the code in `seq2seq/gSCAN_dataset.py`. For the example shown in the previous subsection, the world state will be represented by a 4 x 4 x 15 sized matrix of the grid world, where the 15 dimensions are the following:
 
-[size 1, size 2, size 3, size 4, yellow, green, red, blue, circle, square, agent, east, south, west, north]
+[size 1, size 2, size 3, size 4, circle, square, red, green, yellow, blue, agent, east, south, west, north]
 
-The first vector representing one grid cell, namely the yellow circle of size 4 in the top-left corner (row and grid 0) of the world, will be the following vector: `[0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]`.
+The first vector representing one grid cell, namely the green square of size 4 in row 1 and column 1 (starting at 0) of the world, will be the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`.
 
 <details open>
 <summary>The training command will produce the following output (click to open/close): </summary>
 <p>
  
 ```python
-2020-03-10 19:00 mode: train
-2020-03-10 19:00 output_directory: output
-2020-03-10 19:00 resume_from_file: 
-2020-03-10 19:00 split: test
-2020-03-10 19:00 data_directory: data/demo_dataset
-2020-03-10 19:00 input_vocab_path: training_input_vocab.txt
-2020-03-10 19:00 target_vocab_path: training_target_vocab.txt
-2020-03-10 19:00 generate_vocabularies: True
-2020-03-10 19:00 training_batch_size: 5
-2020-03-10 19:00 k: 0
-2020-03-10 19:00 test_batch_size: 1
-2020-03-10 19:00 max_training_examples: None
-2020-03-10 19:00 learning_rate: 0.001
-2020-03-10 19:00 lr_decay: 0.9
-2020-03-10 19:00 lr_decay_steps: 20000
-2020-03-10 19:00 adam_beta_1: 0.9
-2020-03-10 19:00 adam_beta_2: 0.999
-2020-03-10 19:00 print_every: 1
-2020-03-10 19:00 evaluate_every: 5
-2020-03-10 19:00 max_training_iterations: 10
-2020-03-10 19:00 weight_target_loss: 0.3
-2020-03-10 19:00 max_testing_examples: None
-2020-03-10 19:00 splits: test
-2020-03-10 19:00 max_decoding_steps: 30
-2020-03-10 19:00 output_file_name: predict.json
-2020-03-10 19:00 simple_situation_representation: True
-2020-03-10 19:00 cnn_hidden_num_channels: 50
-2020-03-10 19:00 cnn_kernel_size: 7
-2020-03-10 19:00 cnn_dropout_p: 0.1
-2020-03-10 19:00 auxiliary_task: False
-2020-03-10 19:00 embedding_dimension: 5
-2020-03-10 19:00 num_encoder_layers: 1
-2020-03-10 19:00 encoder_hidden_size: 20
-2020-03-10 19:00 encoder_dropout_p: 0.3
-2020-03-10 19:00 encoder_bidirectional: True
-2020-03-10 19:00 num_decoder_layers: 1
-2020-03-10 19:00 attention_type: bahdanau
-2020-03-10 19:00 decoder_dropout_p: 0.3
-2020-03-10 19:00 decoder_hidden_size: 20
-2020-03-10 19:00 conditional_attention: True
-2020-03-10 19:00 seed: 42
-2020-03-10 19:00 Loading Training set...
-2020-03-10 19:00 Verb-adverb combinations in training set: 
-2020-03-10 19:00 Verbs for adverb: 
-2020-03-10 19:00    walk: 1701 occurrences.
-2020-03-10 19:00 Verb-adverb combinations in dev set: 
-2020-03-10 19:00 Verbs for adverb: 
-2020-03-10 19:00    walk: 1701 occurrences.
-2020-03-10 19:00 Generating vocabularies...
-2020-03-10 19:00 Populating vocabulary...
-2020-03-10 19:00 Done generating vocabularies.
-2020-03-10 19:00 Converting dataset to tensors...
-2020-03-10 19:00 Done Loading Training set.
-2020-03-10 19:00   Loaded 1701 training examples.
-2020-03-10 19:00   Input vocabulary size training set: 14
-2020-03-10 19:00   Most common input words: [('walk', 1701), ('to', 1701), ('a', 1701), ('circle', 982), ('square', 719)]
-2020-03-10 19:00   Output vocabulary size training set: 6
-2020-03-10 19:00   Most common target words: [('walk', 5325), ('turn left', 1486), ('turn right', 811)]
-2020-03-10 19:00 Saved vocabularies to training_input_vocab.txt for input and training_target_vocab.txt for target.
-2020-03-10 19:00 Loading Dev. set...
-2020-03-10 19:00 Verb-adverb combinations in training set: 
-2020-03-10 19:00 Verbs for adverb: 
-2020-03-10 19:00    walk: 1701 occurrences.
-2020-03-10 19:00 Verb-adverb combinations in dev set: 
-2020-03-10 19:00 Verbs for adverb: 
-2020-03-10 19:00    walk: 1701 occurrences.
-2020-03-10 19:00 Loading vocabularies...
-2020-03-10 19:00 Done loading vocabularies.
-2020-03-10 19:00 Converting dataset to tensors...
-2020-03-10 19:00 Done Loading Dev. set.
-2020-03-10 19:00 Total parameters: 74670
-2020-03-10 19:00 situation_encoder.conv_1.weight : [50, 15, 1, 1]
-2020-03-10 19:00 situation_encoder.conv_1.bias : [50]
-2020-03-10 19:00 situation_encoder.conv_2.weight : [50, 15, 5, 5]
-2020-03-10 19:00 situation_encoder.conv_2.bias : [50]
-2020-03-10 19:00 situation_encoder.conv_3.weight : [50, 15, 7, 7]
-2020-03-10 19:00 situation_encoder.conv_3.bias : [50]
-2020-03-10 19:00 visual_attention.key_layer.weight : [20, 150]
-2020-03-10 19:00 visual_attention.query_layer.weight : [20, 20]
-2020-03-10 19:00 visual_attention.energy_layer.weight : [1, 20]
-2020-03-10 19:00 encoder.embedding.weight : [14, 5]
-2020-03-10 19:00 encoder.lstm.weight_ih_l0 : [80, 5]
-2020-03-10 19:00 encoder.lstm.weight_hh_l0 : [80, 20]
-2020-03-10 19:00 encoder.lstm.bias_ih_l0 : [80]
-2020-03-10 19:00 encoder.lstm.bias_hh_l0 : [80]
-2020-03-10 19:00 encoder.lstm.weight_ih_l0_reverse : [80, 5]
-2020-03-10 19:00 encoder.lstm.weight_hh_l0_reverse : [80, 20]
-2020-03-10 19:00 encoder.lstm.bias_ih_l0_reverse : [80]
-2020-03-10 19:00 encoder.lstm.bias_hh_l0_reverse : [80]
-2020-03-10 19:00 enc_hidden_to_dec_hidden.weight : [20, 20]
-2020-03-10 19:00 enc_hidden_to_dec_hidden.bias : [20]
-2020-03-10 19:00 textual_attention.key_layer.weight : [20, 20]
-2020-03-10 19:00 textual_attention.query_layer.weight : [20, 20]
-2020-03-10 19:00 textual_attention.energy_layer.weight : [1, 20]
-2020-03-10 19:00 attention_decoder.queries_to_keys.weight : [20, 40]
-2020-03-10 19:00 attention_decoder.queries_to_keys.bias : [20]
-2020-03-10 19:00 attention_decoder.embedding.weight : [6, 20]
-2020-03-10 19:00 attention_decoder.lstm.weight_ih_l0 : [80, 60]
-2020-03-10 19:00 attention_decoder.lstm.weight_hh_l0 : [80, 20]
-2020-03-10 19:00 attention_decoder.lstm.bias_ih_l0 : [80]
-2020-03-10 19:00 attention_decoder.lstm.bias_hh_l0 : [80]
-2020-03-10 19:00 attention_decoder.output_to_hidden.weight : [20, 80]
-2020-03-10 19:00 attention_decoder.hidden_to_output.weight : [6, 20]
-2020-03-10 19:00 Training starts..
-2020-03-10 19:00 Iteration 00000001, loss   1.8383, accuracy 16.67, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000002, loss   1.8169, accuracy 17.86, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000003, loss   1.7920, accuracy 31.58, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000004, loss   1.7520, accuracy 25.00, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000005, loss   1.7414, accuracy 25.00, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Evaluating..
-2020-03-10 19:00 Predicted for 1701 examples.
-2020-03-10 19:00 Done predicting in 7.440967321395874 seconds.
-2020-03-10 19:00   Evaluation Accuracy: 14.75 Exact Match:  3.64  Target Accuracy:  0.00
-2020-03-10 19:00 Iteration 00000006, loss   1.7442, accuracy 30.56, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000007, loss   1.7155, accuracy 32.14, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000008, loss   1.6365, accuracy 40.00, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000009, loss   1.6697, accuracy 37.50, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Iteration 00000010, loss   1.6211, accuracy 48.28, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
-2020-03-10 19:00 Evaluating..
-2020-03-10 19:00 Predicted for 1701 examples.
-2020-03-10 19:00 Done predicting in 33.71092200279236 seconds.
-2020-03-10 19:00   Evaluation Accuracy: 18.46 Exact Match:  1.41  Target Accuracy:  0.00
-2020-03-10 19:00 Finished training.
+2020-03-10 19:53 mode: train
+2020-03-10 19:53 output_directory: output
+2020-03-10 19:53 resume_from_file: 
+2020-03-10 19:53 split: test
+2020-03-10 19:53 data_directory: data/demo_dataset
+2020-03-10 19:53 input_vocab_path: training_input_vocab.txt
+2020-03-10 19:53 target_vocab_path: training_target_vocab.txt
+2020-03-10 19:53 generate_vocabularies: True
+2020-03-10 19:53 training_batch_size: 5
+2020-03-10 19:53 k: 0
+2020-03-10 19:53 test_batch_size: 1
+2020-03-10 19:53 max_training_examples: None
+2020-03-10 19:53 learning_rate: 0.001
+2020-03-10 19:53 lr_decay: 0.9
+2020-03-10 19:53 lr_decay_steps: 20000
+2020-03-10 19:53 adam_beta_1: 0.9
+2020-03-10 19:53 adam_beta_2: 0.999
+2020-03-10 19:53 print_every: 100
+2020-03-10 19:53 evaluate_every: 500
+2020-03-10 19:53 max_training_iterations: 1000
+2020-03-10 19:53 weight_target_loss: 0.3
+2020-03-10 19:53 max_testing_examples: None
+2020-03-10 19:53 splits: test
+2020-03-10 19:53 max_decoding_steps: 30
+2020-03-10 19:53 output_file_name: predict.json
+2020-03-10 19:53 simple_situation_representation: True
+2020-03-10 19:53 cnn_hidden_num_channels: 50
+2020-03-10 19:53 cnn_kernel_size: 7
+2020-03-10 19:53 cnn_dropout_p: 0.1
+2020-03-10 19:53 auxiliary_task: False
+2020-03-10 19:53 embedding_dimension: 5
+2020-03-10 19:53 num_encoder_layers: 1
+2020-03-10 19:53 encoder_hidden_size: 20
+2020-03-10 19:53 encoder_dropout_p: 0.3
+2020-03-10 19:53 encoder_bidirectional: True
+2020-03-10 19:53 num_decoder_layers: 1
+2020-03-10 19:53 attention_type: bahdanau
+2020-03-10 19:53 decoder_dropout_p: 0.3
+2020-03-10 19:53 decoder_hidden_size: 20
+2020-03-10 19:53 conditional_attention: True
+2020-03-10 19:53 seed: 42
+2020-03-10 19:53 Loading Training set...
+2020-03-10 19:53 Verb-adverb combinations in training set: 
+2020-03-10 19:53 Verbs for adverb: 
+2020-03-10 19:53    walk: 1531 occurrences.
+2020-03-10 19:53 Verb-adverb combinations in dev set: 
+2020-03-10 19:53 Verbs for adverb: 
+2020-03-10 19:53    walk: 170 occurrences.
+2020-03-10 19:53 Generating vocabularies...
+2020-03-10 19:53 Populating vocabulary...
+2020-03-10 19:53 Done generating vocabularies.
+2020-03-10 19:53 Converting dataset to tensors...
+2020-03-10 19:53 Done Loading Training set.
+2020-03-10 19:53   Loaded 1531 training examples.
+2020-03-10 19:53   Input vocabulary size training set: 14
+2020-03-10 19:53   Most common input words: [('walk', 1531), ('to', 1531), ('a', 1531), ('circle', 869), ('square', 662)]
+2020-03-10 19:53   Output vocabulary size training set: 6
+2020-03-10 19:53   Most common target words: [('walk', 4794), ('turn left', 1361), ('turn right', 755)]
+2020-03-10 19:53 Saved vocabularies to training_input_vocab.txt for input and training_target_vocab.txt for target.
+2020-03-10 19:53 Loading Dev. set...
+2020-03-10 19:53 Verb-adverb combinations in training set: 
+2020-03-10 19:53 Verbs for adverb: 
+2020-03-10 19:53    walk: 1531 occurrences.
+2020-03-10 19:53 Verb-adverb combinations in dev set: 
+2020-03-10 19:53 Verbs for adverb: 
+2020-03-10 19:53    walk: 170 occurrences.
+2020-03-10 19:53 Loading vocabularies...
+2020-03-10 19:53 Done loading vocabularies.
+2020-03-10 19:53 Converting dataset to tensors...
+2020-03-10 19:53 Done Loading Dev. set.
+/home/laura/.local/lib/python3.7/site-packages/torch/nn/modules/rnn.py:51: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.3 and num_layers=1
+  "num_layers={}".format(dropout, num_layers))
+2020-03-10 19:53 Total parameters: 74670
+2020-03-10 19:53 situation_encoder.conv_1.weight : [50, 15, 1, 1]
+2020-03-10 19:53 situation_encoder.conv_1.bias : [50]
+2020-03-10 19:53 situation_encoder.conv_2.weight : [50, 15, 5, 5]
+2020-03-10 19:53 situation_encoder.conv_2.bias : [50]
+2020-03-10 19:53 situation_encoder.conv_3.weight : [50, 15, 7, 7]
+2020-03-10 19:53 situation_encoder.conv_3.bias : [50]
+2020-03-10 19:53 visual_attention.key_layer.weight : [20, 150]
+2020-03-10 19:53 visual_attention.query_layer.weight : [20, 20]
+2020-03-10 19:53 visual_attention.energy_layer.weight : [1, 20]
+2020-03-10 19:53 encoder.embedding.weight : [14, 5]
+2020-03-10 19:53 encoder.lstm.weight_ih_l0 : [80, 5]
+2020-03-10 19:53 encoder.lstm.weight_hh_l0 : [80, 20]
+2020-03-10 19:53 encoder.lstm.bias_ih_l0 : [80]
+2020-03-10 19:53 encoder.lstm.bias_hh_l0 : [80]
+2020-03-10 19:53 encoder.lstm.weight_ih_l0_reverse : [80, 5]
+2020-03-10 19:53 encoder.lstm.weight_hh_l0_reverse : [80, 20]
+2020-03-10 19:53 encoder.lstm.bias_ih_l0_reverse : [80]
+2020-03-10 19:53 encoder.lstm.bias_hh_l0_reverse : [80]
+2020-03-10 19:53 enc_hidden_to_dec_hidden.weight : [20, 20]
+2020-03-10 19:53 enc_hidden_to_dec_hidden.bias : [20]
+2020-03-10 19:53 textual_attention.key_layer.weight : [20, 20]
+2020-03-10 19:53 textual_attention.query_layer.weight : [20, 20]
+2020-03-10 19:53 textual_attention.energy_layer.weight : [1, 20]
+2020-03-10 19:53 attention_decoder.queries_to_keys.weight : [20, 40]
+2020-03-10 19:53 attention_decoder.queries_to_keys.bias : [20]
+2020-03-10 19:53 attention_decoder.embedding.weight : [6, 20]
+2020-03-10 19:53 attention_decoder.lstm.weight_ih_l0 : [80, 60]
+2020-03-10 19:53 attention_decoder.lstm.weight_hh_l0 : [80, 20]
+2020-03-10 19:53 attention_decoder.lstm.bias_ih_l0 : [80]
+2020-03-10 19:53 attention_decoder.lstm.bias_hh_l0 : [80]
+2020-03-10 19:53 attention_decoder.output_to_hidden.weight : [20, 80]
+2020-03-10 19:53 attention_decoder.hidden_to_output.weight : [6, 20]
+2020-03-10 19:53 Training starts..
+2020-03-10 19:53 Iteration 00000100, loss   0.9701, accuracy 51.72, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000200, loss   0.9381, accuracy 47.62, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000300, loss   0.7489, accuracy 78.26, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000400, loss   0.6548, accuracy 74.19, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000500, loss   0.5565, accuracy 81.25, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Evaluating..
+2020-03-10 19:53 Predicted for 170 examples.
+2020-03-10 19:53 Done predicting in 1.1095800399780273 seconds.
+2020-03-10 19:53   Evaluation Accuracy: 52.94 Exact Match:  5.88  Target Accuracy:  0.00
+2020-03-10 19:53 Iteration 00000600, loss   0.5894, accuracy 79.17, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000700, loss   0.5319, accuracy 77.78, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000800, loss   0.3924, accuracy 83.33, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00000900, loss   0.5259, accuracy 81.48, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
+2020-03-10 19:53 Iteration 00001000, loss   0.3916, accuracy 85.29, exact match 20.00, learning_rate 0.00099, aux. accuracy target pos  0.00
+2020-03-10 19:53 Evaluating..
+2020-03-10 19:53 Predicted for 170 examples.
+2020-03-10 19:53 Done predicting in 1.1327424049377441 seconds.
+2020-03-10 19:53   Evaluation Accuracy: 58.40 Exact Match: 20.59  Target Accuracy:  0.00
+2020-03-10 19:53 Finished training.
 
 ```
 
