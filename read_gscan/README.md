@@ -38,7 +38,7 @@ direction the agent is looking in ([1 0 0 0] fo east).
 
 **Dimensions**:
 
-[size 1, size 2, size 3, size 4, green, red, yellow, blue, circle, square, cylinder, agent, east, south, west, north]
+[size 1, size 2, size 3, size 4, circle, square, cylinder, green, red, yellow, blue, agent, east, south, west, north]
 
 # Demonstration
 
@@ -56,15 +56,15 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                 "situation": {
                     "grid_size": 4,
                     "agent_position": {
-                        "row": "0",
-                        "column": "1"
+                        "row": "2",
+                        "column": "3"
                     },
                     "agent_direction": 0,
                     "target_object": {
                         "vector": "1000101000",
                         "position": {
-                            "row": "1",
-                            "column": "0"
+                            "row": "3",
+                            "column": "2"
                         },
                         "object": {
                             "shape": "circle",
@@ -78,8 +78,8 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                         "0": {
                             "vector": "1000101000",
                             "position": {
-                                "row": "1",
-                                "column": "0"
+                                "row": "3",
+                                "column": "2"
                             },
                             "object": {
                                 "shape": "circle",
@@ -88,39 +88,39 @@ To get a feel of the data used in the paper, we can look at the data in the fold
                             }
                         },
                         "1": {
-                            "vector": "0010010001",
+                            "vector": "0010011000",
                             "position": {
-                                "row": "0",
-                                "column": "3"
+                                "row": "2",
+                                "column": "1"
                             },
                             "object": {
                                 "shape": "square",
-                                "color": "blue",
+                                "color": "red",
                                 "size": "3"
                             }
                         },
                         "2": {
-                            "vector": "0001100010",
+                            "vector": "0100010001",
                             "position": {
-                                "row": "0",
-                                "column": "0"
-                            },
-                            "object": {
-                                "shape": "circle",
-                                "color": "yellow",
-                                "size": "4"
-                            }
-                        },
-                        "3": {
-                            "vector": "0100010100",
-                            "position": {
-                                "row": "3",
+                                "row": "1",
                                 "column": "2"
                             },
                             "object": {
                                 "shape": "square",
-                                "color": "green",
+                                "color": "blue",
                                 "size": "2"
+                            }
+                        },
+                        "3": {
+                            "vector": "0001010100",
+                            "position": {
+                                "row": "1",
+                                "column": "1"
+                            },
+                            "object": {
+                                "shape": "square",
+                                "color": "green",
+                                "size": "4"
                             }
                         }
                     },
@@ -170,146 +170,6 @@ Is we want to parse the demo_dataset independent from the code GroundedScan, thi
                         0,
                         0,
                         0,
-                        1,
-                        1,
-                        0,
-                        0,
-                        0,
-                        1,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ],
-                    [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        1,
-                        1,
-                        0,
-                        0,
-                        0
-                    ],
-                    [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ],
-                    [
-                        0,
-                        0,
-                        1,
-                        0,
-                        0,
-                        1,
-                        0,
-                        0,
-                        0,
-                        1,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ]
-                ],
-                [
-                    [
-                        1,
-                        0,
-                        0,
-                        0,
-                        1,
-                        0,
-                        1,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ],
-                    [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ],
-                    [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ],
-                    [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ]
-                ],
-                [
-                    [
-                        0,
-                        0,
-                        0,
                         0,
                         0,
                         0,
@@ -397,11 +257,11 @@ Is we want to parse the demo_dataset independent from the code GroundedScan, thi
                         0,
                         0,
                         0,
+                        1,
                         0,
+                        1,
                         0,
-                        0,
-                        0,
-                        0,
+                        1,
                         0,
                         0,
                         0,
@@ -418,7 +278,147 @@ Is we want to parse the demo_dataset independent from the code GroundedScan, thi
                         0,
                         1,
                         0,
+                        0,
+                        0,
                         1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                [
+                    [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        0,
+                        1,
+                        0,
+                        0,
+                        1,
+                        1,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        1,
+                        1,
+                        0,
+                        0,
+                        0
+                    ]
+                ],
+                [
+                    [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    [
+                        1,
+                        0,
+                        0,
+                        0,
+                        1,
+                        0,
+                        1,
+                        0,
                         0,
                         0,
                         0,
@@ -454,9 +454,7 @@ Is we want to parse the demo_dataset independent from the code GroundedScan, thi
 
 The parsed data only retains the important keys for training a computational model, namely the input pair *"input"* and *"situation"*, and the target sequence *"target"*. The situation representation is instead of a sparse representation of the available objects represented by the, in this case, 4 x 4 x 15 sized matrix of the grid world, where the 15 dimensions are the following:
 
+[size 1, size 2, size 3, size 4, circle, square, red, green, yellow, blue, agent, east, south, west, north]
 
-[size 1, size 2, size 3, size 4, yellow, green, red, blue, circle, square, agent, east, south, west, north]
-
-In the first vector you can see the representation of the yellow circle of size 4 in the top-left corner (row and grid 0) of the world. Namely the following vector: `[0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]`.
-
+In the first vector you can see the representation of the green square of size 4 in row 1 and column 1 (starting from 0) of the world. Namely the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`.
 
