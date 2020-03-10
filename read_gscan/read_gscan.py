@@ -7,8 +7,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Parse Grounded SCAN")
 
 # General arguments
-parser.add_argument("--dataset_path", type=str, default="./data/compositional_splits/dataset.txt", help="path to data",
-                    required=True)
+parser.add_argument("--dataset_path", type=str, default="../data/demo_dataset/dataset.txt", help="path to data")
 parser.add_argument("--output_file", type=str, default="parsed_dataset.txt")
 parser.add_argument("--save_data", dest="save_data", default=False, action="store_true")
 
