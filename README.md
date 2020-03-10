@@ -290,8 +290,6 @@ The first vector representing one grid cell, namely the yellow circle of size 4 
 2020-03-10 19:00 attention_decoder.output_to_hidden.weight : [20, 80]
 2020-03-10 19:00 attention_decoder.hidden_to_output.weight : [6, 20]
 2020-03-10 19:00 Training starts..
-/home/laura/Documents/FAIR/multimodal_seq2seq_gSCAN/seq2seq/seq2seq_model.py:121: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
-  memory_lengths = torch.tensor(memory_lengths, dtype=torch.long, device=device)
 2020-03-10 19:00 Iteration 00000001, loss   1.8383, accuracy 16.67, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-03-10 19:00 Iteration 00000002, loss   1.8169, accuracy 17.86, exact match  0.00, learning_rate 0.00100, aux. accuracy target pos  0.00
 2020-03-10 19:00 Iteration 00000003, loss   1.7920, accuracy 31.58, exact match 20.00, learning_rate 0.00100, aux. accuracy target pos  0.00
