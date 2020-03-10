@@ -1,12 +1,12 @@
 # TL;DR
 This file reads a fully specified gSCAN dataset into a representation that can be processed by numerical models.
  
-Unzip one of the data folders in `./data`, e.g. `compositional_splits`.
+Unzip one of the data folders in `../data`, e.g. `compositional_splits`, or use the demo dataset (`../data/demo_dataset/dataset.txt`).
  
 To obtain the parsed dataset in a file named "parsed_dataset.txt", run:
 ```bash
 >>> python -m pip install numpy
->>> python read_gscan.py --dataset_path=./data/compositional_splits/dataset.txt --save_data --output_file=parsed_dataset.txt
+>>> python read_gscan.py --dataset_path=../data/compositional_splits/dataset.txt --save_data --output_file=parsed_dataset.txt
 ```
 
 Another possibility is to import the function `data_loader` in another project and use the data directly in a model.
