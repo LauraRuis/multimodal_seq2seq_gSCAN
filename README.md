@@ -174,13 +174,17 @@ For a way to parse the dataset independently of the code in `GroundedScan`, refe
 We can train the baseline model from the paper on this demo dataset with the following command:
 
 
-```>> python3.7 -m seq2seq --mode=train --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --max_training_iterations=500 --training_batch_size=5 --print_every=100 --evaluate_every=500 --generate_vocabularies```
+```>> python3.7 -m seq2seq --mode=train --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --max_training_iterations=1000 --training_batch_size=5 --print_every=100 --evaluate_every=500 --generate_vocabularies```
 
 This will parse the file `data/demo_dataset/dataset.txt` and extract the trainnig set and development set for training, and convert the to a representation that can be parsed by numerical methods. The situation representation is parsed by the code in `seq2seq/gSCAN_dataset.py`. For the example shown in the previous subsection, the world state will be represented by a 4 x 4 x 15 sized matrix of the grid world, where the 15 dimensions are the following:
 
 [size 1, size 2, size 3, size 4, circle, square, red, green, yellow, blue, agent, east, south, west, north]
 
 The first vector representing one grid cell, namely the green square of size 4 in row 1 and column 1 (starting at 0) of the world, will be the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`.
+
+### Training a model
+
+The command mentioned earlier for training, will generate the following output (containing all set parameters, and logging the training progress in terms of accuracy, loss, and exact match. The evaluation cycles are done on the development set.): 
 
 <details open>
 <summary>The training command will produce the following output (click to open/close): </summary>
@@ -257,8 +261,6 @@ The first vector representing one grid cell, namely the green square of size 4 i
 2020-03-10 19:53 Done loading vocabularies.
 2020-03-10 19:53 Converting dataset to tensors...
 2020-03-10 19:53 Done Loading Dev. set.
-/home/laura/.local/lib/python3.7/site-packages/torch/nn/modules/rnn.py:51: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.3 and num_layers=1
-  "num_layers={}".format(dropout, num_layers))
 2020-03-10 19:53 Total parameters: 74670
 2020-03-10 19:53 situation_encoder.conv_1.weight : [50, 15, 1, 1]
 2020-03-10 19:53 situation_encoder.conv_1.bias : [50]
@@ -319,3 +321,126 @@ The first vector representing one grid cell, namely the green square of size 4 i
 </details>
 
 
+## Testing the saved model
+
+The training command has saved the best model in `output/model_best.pth.tar`. We can now use the model for predictions with the following command (lets do predictions for the test set, the visual split (i.e., 'red squares'), and the situational_1 split (i.e., 'novel direction')): 
+
+```python3.7 -m seq2seq --mode=test --data_directory=data/demo_dataset --embedding_dimension=5 --encoder_hidden_size=20 --decoder_hidden_size=20 --resume_from_file=output/model_best.pth.tar --splits=test,visual,situational_1 --max_decoding_steps=50```
+
+<details open>
+<summary>This produces the followig output: (click to open/close): </summary>
+<p>
+ 
+```python
+2020-03-10 20:00 mode: test
+2020-03-10 20:00 output_directory: output
+2020-03-10 20:00 resume_from_file: output/model_best.pth.tar
+2020-03-10 20:00 split: test
+2020-03-10 20:00 data_directory: data/demo_dataset
+2020-03-10 20:00 input_vocab_path: training_input_vocab.txt
+2020-03-10 20:00 target_vocab_path: training_target_vocab.txt
+2020-03-10 20:00 generate_vocabularies: False
+2020-03-10 20:00 training_batch_size: 50
+2020-03-10 20:00 k: 0
+2020-03-10 20:00 test_batch_size: 1
+2020-03-10 20:00 max_training_examples: None
+2020-03-10 20:00 learning_rate: 0.001
+2020-03-10 20:00 lr_decay: 0.9
+2020-03-10 20:00 lr_decay_steps: 20000
+2020-03-10 20:00 adam_beta_1: 0.9
+2020-03-10 20:00 adam_beta_2: 0.999
+2020-03-10 20:00 print_every: 100
+2020-03-10 20:00 evaluate_every: 1000
+2020-03-10 20:00 max_training_iterations: 100000
+2020-03-10 20:00 weight_target_loss: 0.3
+2020-03-10 20:00 max_testing_examples: None
+2020-03-10 20:00 splits: test,visual,situational_1
+2020-03-10 20:00 max_decoding_steps: 50
+2020-03-10 20:00 output_file_name: predict.json
+2020-03-10 20:00 simple_situation_representation: True
+2020-03-10 20:00 cnn_hidden_num_channels: 50
+2020-03-10 20:00 cnn_kernel_size: 7
+2020-03-10 20:00 cnn_dropout_p: 0.1
+2020-03-10 20:00 auxiliary_task: False
+2020-03-10 20:00 embedding_dimension: 5
+2020-03-10 20:00 num_encoder_layers: 1
+2020-03-10 20:00 encoder_hidden_size: 20
+2020-03-10 20:00 encoder_dropout_p: 0.3
+2020-03-10 20:00 encoder_bidirectional: True
+2020-03-10 20:00 num_decoder_layers: 1
+2020-03-10 20:00 attention_type: bahdanau
+2020-03-10 20:00 decoder_dropout_p: 0.3
+2020-03-10 20:00 decoder_hidden_size: 20
+2020-03-10 20:00 conditional_attention: True
+2020-03-10 20:00 seed: 42
+2020-03-10 20:00 Loading test dataset split...
+2020-03-10 20:00 Verb-adverb combinations in training set: 
+2020-03-10 20:00 Verbs for adverb: 
+2020-03-10 20:00    walk: 1531 occurrences.
+2020-03-10 20:00 Verb-adverb combinations in dev set: 
+2020-03-10 20:00 Verbs for adverb: 
+2020-03-10 20:00    walk: 170 occurrences.
+2020-03-10 20:00 Loading vocabularies...
+2020-03-10 20:00 Done loading vocabularies.
+2020-03-10 20:00 Converting dataset to tensors...
+2020-03-10 20:00 Done Loading test dataset split.
+2020-03-10 20:00   Loaded 305 examples.
+2020-03-10 20:00   Input vocabulary size: 14
+2020-03-10 20:00   Most common input words: [('walk', 1531), ('to', 1531), ('a', 1531), ('circle', 869), ('square', 662)]
+2020-03-10 20:00   Output vocabulary size: 6
+2020-03-10 20:00   Most common target words: [('walk', 4794), ('turn left', 1361), ('turn right', 755)]
+2020-03-10 20:00 Loading checkpoint from file at 'output/model_best.pth.tar'
+2020-03-10 20:00 Loaded checkpoint 'output/model_best.pth.tar' (iter 1002)
+2020-03-10 20:00 Predicted for 305 examples.
+2020-03-10 20:00 Done predicting in 2.7643723487854004 seconds.
+2020-03-10 20:00 Wrote predictions for 305 examples.
+2020-03-10 20:00 Saved predictions to output/test_predict.json
+2020-03-10 20:00 Loading visual dataset split...
+2020-03-10 20:00 Verb-adverb combinations in training set: 
+2020-03-10 20:00 Verbs for adverb: 
+2020-03-10 20:00    walk: 1531 occurrences.
+2020-03-10 20:00 Verb-adverb combinations in dev set: 
+2020-03-10 20:00 Verbs for adverb: 
+2020-03-10 20:00    walk: 170 occurrences.
+2020-03-10 20:00 Loading vocabularies...
+2020-03-10 20:00 Done loading vocabularies.
+2020-03-10 20:00 Converting dataset to tensors...
+2020-03-10 20:00 Done Loading test dataset split.
+2020-03-10 20:00   Loaded 378 examples.
+2020-03-10 20:00   Input vocabulary size: 14
+2020-03-10 20:00   Most common input words: [('walk', 1531), ('to', 1531), ('a', 1531), ('circle', 869), ('square', 662)]
+2020-03-10 20:00   Output vocabulary size: 6
+2020-03-10 20:00   Most common target words: [('walk', 4794), ('turn left', 1361), ('turn right', 755)]
+2020-03-10 20:00 Loading checkpoint from file at 'output/model_best.pth.tar'
+2020-03-10 20:00 Loaded checkpoint 'output/model_best.pth.tar' (iter 1002)
+2020-03-10 20:00 Predicted for 378 examples.
+2020-03-10 20:00 Done predicting in 2.68125581741333 seconds.
+2020-03-10 20:00 Wrote predictions for 378 examples.
+2020-03-10 20:00 Saved predictions to output/visual_predict.json
+2020-03-10 20:00 Loading situational_1 dataset split...
+2020-03-10 20:00 Verb-adverb combinations in training set: 
+2020-03-10 20:00 Verbs for adverb: 
+2020-03-10 20:00    walk: 1531 occurrences.
+2020-03-10 20:00 Verb-adverb combinations in dev set: 
+2020-03-10 20:00 Verbs for adverb: 
+2020-03-10 20:00    walk: 170 occurrences.
+2020-03-10 20:00 Loading vocabularies...
+2020-03-10 20:00 Done loading vocabularies.
+2020-03-10 20:00 Converting dataset to tensors...
+2020-03-10 20:00 Done Loading test dataset split.
+2020-03-10 20:00   Loaded 450 examples.
+2020-03-10 20:00   Input vocabulary size: 14
+2020-03-10 20:00   Most common input words: [('walk', 1531), ('to', 1531), ('a', 1531), ('circle', 869), ('square', 662)]
+2020-03-10 20:00   Output vocabulary size: 6
+2020-03-10 20:00   Most common target words: [('walk', 4794), ('turn left', 1361), ('turn right', 755)]
+2020-03-10 20:00 Loading checkpoint from file at 'output/model_best.pth.tar'
+2020-03-10 20:00 Loaded checkpoint 'output/model_best.pth.tar' (iter 1002)
+2020-03-10 20:00 Predicted for 450 examples.
+2020-03-10 20:00 Done predicting in 3.259852170944214 seconds.
+2020-03-10 20:00 Wrote predictions for 450 examples.
+2020-03-10 20:00 Saved predictions to output/situational_1_predict.json
+
+```
+
+</p>
+</details>
