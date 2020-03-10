@@ -9,7 +9,7 @@ This model is detailed in the grounded SCAN paper, and graphically depicted in t
 
 Find all commands to reproduce the experiments in `all_experiments.sh` containing the used parameters and seeds.
 For a detailed file with all parameters, seeds, and other logging per training run, see `documentation/training_logs/`.
-Before trainig unzip the data in folder `data`. For a demo on training a small model on a dummy dataset, refer to the last section of this readme headed 'demo'.
+Before trainig unzip the data in folder `data`. For a demo on training a small model on a dummy dataset, refer to [the last section of this readme](https://github.com/LauraRuis/multimodal_seq2seq_gSCAN#demo-training-a-model-on-a-dummy-dataset).
 
 ## Getting Started
 
@@ -69,7 +69,7 @@ These fills contain printed all hyperparameters, as well as the training and dev
 You can try this demo on almost any machine, it requires no GPU and runs in a couple of seconds on a laptop with a CPU containing 8 GB RAM.
 
 ### Loading the data
-To get a feel of the data used in the paper, we can look at the data in the folder `data/demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `data/demo_dataset/dataset.txt` we can see that the first example if we follow the keys "examples" and "situational_1" is the following: 
+To get a feel of the data used in the paper, we can look at the data in the folder `data/demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `data/demo_dataset/dataset.txt` we can see the following example (the first one at the keys "examples" and "situational_1"): 
 
 <details open>
 <summary>The first data example in the split called "situational_1" (i.e., novel direction) set. Click to open/close.</summary>
@@ -163,13 +163,13 @@ To get a feel of the data used in the paper, we can look at the data in the fold
 </p>
 </details>
 
-This data example contains the *"command"*, or input  instruction, 'walk to the red circle', that in this case based on the situation maps to the target command sequence of *"target_commands"*: "turn left,turn left,walk,turn left,walk". The data example contains the situation representation, or world state, at the key *"situation"*, and it also contains some additional information that is useful in parsing it back to the representation it was generated from, namely the *"derivation"* containing the depth-first extracted constituency tree, the *"meaning"* containing the semantic meaning of the input instruction. This is only useful if we would have generated the benchmark with nonsensical words, in that case we would need a semantic representation that can be parsed by humans. 
+This data example contains the *"command"*, or input  instruction, 'walk to the red circle', which for the specified world state (i.e., *"situation"*) maps to the *"target_commands"*: "turn left,turn left,walk,turn left,walk". The example contains the situation representation, or world state, at the key *"situation"*, and also contains additional information that is needed in parsing the data back to the representation it was generated from, namely the *"derivation"*. This represents the depth-first extracted constituency tree. The string at the key *"meaning"* contains the semantic meaning of the input instruction. This is useful if we would have generated the benchmark with nonsensical words, in which case we would need a semantic representation that can be understood by humans. 
 
-This example is visualized by the following animation:
+The data example is visualized by the following animation:
 
 ![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_1/movie.gif)
 
-For a way to parse the dataset independently of the code in `GroundedScan`, refer to the folder `read_gscan` which has its own `readme.md` with a demonstration. 
+For a way to parse the dataset independently of the code in `GroundedScan`, refer to the folder [read_gscan](read_gscan/) which has its own `readme` with a demonstration. 
 
 We can train the baseline model from the paper on this demo dataset with the following command:
 
