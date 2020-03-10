@@ -142,7 +142,7 @@ This example is visualized by the following animation:
 
 ![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_1/movie.gif)
 
-Is we want to parse the demo_dataset independent from the code GroundedScan, this particular example in represented by:
+Is we want to parse the demo_dataset independent from the code GroundedScan we can the dataset at `parsed_dataset.txt` of this folder, where this particular example in represented by:
 
 <details open>
 <summary>The parsed data example. Click to open/close, explanation below. </summary>
@@ -456,5 +456,5 @@ The parsed data only retains the important keys for training a computational mod
 
 [size 1, size 2, size 3, size 4, circle, square, red, green, yellow, blue, agent, east, south, west, north]
 
-In the first vector you can see the representation of the green square of size 4 in row 1 and column 1 (starting from 0) of the world. Namely the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`.
+In the vector at the matrix of *"situation"* position (1, 1), you can see the representation of the green square of size 4 in row 1 and column 1 (starting from 0) of the world. Namely the following vector: `[0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0]`. In this example above (the representation from `dataset.txt` as opposed to the one in `parsed_dataset.txt`) this vector can be found at the key *"placed_objects"*, *"3"*, *"vector"*: `0001010100`, which represents the first 10 dimensions of the other vector, and is the representation without the agent represented.
 
