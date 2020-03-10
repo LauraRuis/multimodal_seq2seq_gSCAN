@@ -46,7 +46,8 @@ To get a feel of the data used in the paper, we can look at the data in the fold
 
 <details open>
 <summary>Want to ruin the surprise?</summary>
- <br>
+<p>
+ 
 ```javascript
 {
     "command": "walk,to,a,red,circle",
@@ -131,4 +132,6 @@ To get a feel of the data used in the paper, we can look at the data in the fold
     "referred_target": " red circle"
 }
 ```
+
+</p>
 </details>
