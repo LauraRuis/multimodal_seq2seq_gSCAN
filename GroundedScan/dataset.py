@@ -511,9 +511,6 @@ class GroundedScan(object):
                     else:
                         dataset._data_pairs[split].append(example)
                         dataset.update_data_statistics(example, split)
-                    if split == "train" and dataset._vocabulary.translate_meaning("cautiously") in example["command"]:
-                        dataset._data_pairs["dev"].append(example)
-                        dataset.update_data_statistics(example, "dev")
             return dataset
 
     def generate_all_commands(self) -> {}:
