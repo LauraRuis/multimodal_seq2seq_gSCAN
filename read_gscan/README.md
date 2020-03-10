@@ -39,3 +39,92 @@ direction the agent is looking in ([1 0 0 0] fo east).
 **Dimensions**:
 
 [size 1, size 2, size 3, size 4, green, red, blue, circle, square, cylinder, agent, east, south, west, north]
+
+# Demonstration
+
+To get a feel of the data used in the paper, we can look at the data in the folder `../demo_dataset/..`. This dataset is highly simplified in terms of grid size, vocabulary, and number of examples, but the ideas are the same. When opening `../demo_dataset/dataset.txt` we can see that the first example is the following: 
+
+```
+{
+                "command": "walk,to,a,red,circle",
+                "meaning": "walk,to,a,red,circle",
+                "derivation": "NP -> NN,NP -> JJ NP,DP -> 'a' NP,VP -> VV_intrans 'to' DP,ROOT -> VP;T:walk,NT:VV_intransitive -> walk,T:to,T:a,T:red,NT:JJ -> red,T:circle,NT:NN -> circle",
+                "situation": {
+                    "grid_size": 4,
+                    "agent_position": {
+                        "row": "1",
+                        "column": "1"
+                    },
+                    "agent_direction": 0,
+                    "target_object": {
+                        "vector": "1000101000",
+                        "position": {
+                            "row": "2",
+                            "column": "1"
+                        },
+                        "object": {
+                            "shape": "circle",
+                            "color": "red",
+                            "size": "1"
+                        }
+                    },
+                    "distance_to_target": "1",
+                    "direction_to_target": "s",
+                    "placed_objects": {
+                        "0": {
+                            "vector": "1000101000",
+                            "position": {
+                                "row": "2",
+                                "column": "1"
+                            },
+                            "object": {
+                                "shape": "circle",
+                                "color": "red",
+                                "size": "1"
+                            }
+                        },
+                        "1": {
+                            "vector": "0010100100",
+                            "position": {
+                                "row": "3",
+                                "column": "3"
+                            },
+                            "object": {
+                                "shape": "circle",
+                                "color": "green",
+                                "size": "3"
+                            }
+                        },
+                        "2": {
+                            "vector": "1000100010",
+                            "position": {
+                                "row": "1",
+                                "column": "0"
+                            },
+                            "object": {
+                                "shape": "circle",
+                                "color": "yellow",
+                                "size": "1"
+                            }
+                        },
+                        "3": {
+                            "vector": "0010011000",
+                            "position": {
+                                "row": "0",
+                                "column": "3"
+                            },
+                            "object": {
+                                "shape": "square",
+                                "color": "red",
+                                "size": "3"
+                            }
+                        }
+                    },
+                    "carrying_object": null
+                },
+                "target_commands": "turn right,walk",
+                "verb_in_command": "walk",
+                "manner": "",
+                "referred_target": " red circle"
+            }
+```
