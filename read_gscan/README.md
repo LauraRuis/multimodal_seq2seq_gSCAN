@@ -140,7 +140,7 @@ This data example contains the *"command"*, or input  instruction, 'walk to the 
 
 This example is visualized by the following animation:
 
-![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_0/movie.gif)
+![demo_example](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/data/demo_dataset/walk_to_a_red_circle/situation_1/movie.gif)
 
 Is we want to parse the demo_dataset independent from the code GroundedScan, this particular example in represented by:
 
