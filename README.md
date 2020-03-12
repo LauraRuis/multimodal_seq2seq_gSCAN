@@ -1,13 +1,13 @@
 # Neural Baseline and GECA for Grounded SCAN
 
 This repository contains a multi-modal neural sequence-to-sequence model with a CNN to parse a world state and joint attention over input instruction sequences and world states.
-This model is detailed in the grounded SCAN paper, and graphically depicted in the following image:
+This model is detailed in [the grounded SCAN paper](https://arxiv.org/abs/2003.05161), and graphically depicted in the following image:
 
 ![Model](https://raw.githubusercontent.com/LauraRuis/multimodal_seq2seq_gSCAN/master/documentation/model_bahdanau.png?token=AGNMPFBNLBC3MIS3SQKJAXK6N7NYW)
 
 ## TL;DR
 
-Find all commands to reproduce the experiments in `all_experiments.sh` containing the used parameters and seeds.
+Find all commands to reproduce the experiments from [the paper](https://arxiv.org/abs/2003.05161) in `all_experiments.sh` containing the used parameters and seeds.
 For a detailed file with all parameters, seeds, and other logging per training run, see `documentation/training_logs/`.
 Before trainig unzip the data in folder `data`. For a demo on training a small model on a dummy dataset, refer to [the last section of this readme](https://github.com/LauraRuis/multimodal_seq2seq_gSCAN#demo-training-a-model-on-a-dummy-dataset).
 
