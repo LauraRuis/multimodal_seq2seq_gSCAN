@@ -13,9 +13,8 @@ import random
 import itertools
 import logging
 from copy import deepcopy
-import xlwt
 from xlwt import Workbook
-import pdb
+
 logger = logging.getLogger("GroundedScan")
 
 
@@ -97,6 +96,9 @@ class GroundedScan(object):
         self._examples_to_visualize = []
         self._k_shot_examples_in_train = Counter()
         self._data_statistics = {split: self.get_empty_data_statistics() for split in self._possible_splits}
+        self._coverage_commands = {split: {} for split in self._possible_splits}
+        self._coverage_worlds = {split: {} for split in self._possible_splits}
+        self._coverage_full = {split: {} for split in self._possible_splits}
 
     def reset_dataset(self):
         self._grammar.reset_grammar()
@@ -252,10 +254,11 @@ class GroundedScan(object):
         situation = Situation.from_representation(data_example["situation"])
         target_commands = self.parse_command_repr(data_example["target_commands"])
         derivation = self.parse_derivation_repr(data_example["derivation"])
+        manner = data_example["manner"]
         assert self.derivation_repr(derivation) == data_example["derivation"]
         actual_target_commands, target_demonstration, action = self.demonstrate_command(derivation, situation)
         assert self.command_repr(actual_target_commands) == self.command_repr(target_commands)
-        return command, meaning, derivation, situation, actual_target_commands, target_demonstration, action
+        return command, meaning, derivation, situation, actual_target_commands, target_demonstration, action, manner
 
     @staticmethod
     def get_empty_situation():
@@ -304,7 +307,6 @@ class GroundedScan(object):
 
     def update_data_statistics(self, data_example, split="train"):
         """Keeps track of certain statistics regarding the data pairs generated."""
-
         # Update the statistics regarding the situation.
         self._data_statistics[split]["distance_to_target"][int(data_example["situation"]["distance_to_target"])] += 1
         self._data_statistics[split]["direction_to_target"][data_example["situation"]["direction_to_target"]] += 1
@@ -325,18 +327,38 @@ class GroundedScan(object):
         # Update the statistics regarding the command.
         self._data_statistics[split]["verbs_in_command"][data_example["verb_in_command"]] += 1
         manner = data_example.get("manner")
+        if not manner:
+            manner = ""
+            for manner_ref in self._vocabulary.get_adverbs():
+                if manner_ref in data_example["command"]:
+                    manner = manner_ref
         self._data_statistics[split]["manners_in_command"][manner] += 1
-        self._data_statistics[split]["referred_targets"][data_example.get("referred_target")][placed_target] += 1
+        referred_target = data_example.get("referred_target")
+        if referred_target:
+            referred_target = referred_target.split()
+        else:
+            size_ref = ""
+            for size_adj in self._vocabulary.get_size_adjectives():
+                if size_adj in data_example["command"]:
+                    size_ref = size_adj
+            color_ref = ""
+            for color_adj in self._vocabulary.get_color_adjectives():
+                if color_adj in data_example["command"]:
+                    color_ref = color_adj
+            shape_ref = ""
+            for shape_noun in self._vocabulary.get_nouns():
+                if shape_noun in data_example["command"]:
+                    color_ref = shape_noun
+            referred_target = [size_ref, color_ref, shape_ref]
+            referred_target = ' '.join(referred_target).split()
+
+        self._data_statistics[split]["referred_targets"][' '.join(referred_target)][placed_target] += 1
         self._data_statistics[split]["verb_adverb_combinations"][manner][data_example["verb_in_command"]] += 1
         self._data_statistics[split]["verb_target_combinations"][data_example["verb_in_command"]][placed_target] += 1
         self._data_statistics[split]["input_length"][len(data_example["command"].split(','))] += 1
 
         self._data_statistics[split]["target_length"][len(data_example["target_commands"].split(','))] += 1
-        referred_target = data_example.get("referred_target")
-        if referred_target:
-            referred_target = referred_target.split()
-        else:
-            referred_target = [""]
+
         if len(referred_target) == 3:
             referred_categories = "size,color,shape"
         elif len(referred_target) == 1:
@@ -354,6 +376,24 @@ class GroundedScan(object):
                                       placed_object['object']['shape']])
             self._data_statistics[split]["situations"][referred_categories]["objects_in_world"][placed_object] += 1
             self._data_statistics[split]["situations"]["all"]["objects_in_world"][placed_object] += 1
+
+        referred_target = " ".join(referred_target)
+        unique_command_str = '_'.join([data_example["verb_in_command"], referred_target,
+                                       manner])
+        if not self._coverage_commands[split].get(unique_command_str):
+            self._coverage_commands[split][unique_command_str] = 0
+        self._coverage_commands[split][unique_command_str] += 1
+        target_position = ' '.join([str(data_example["situation"]["target_object"]["position"]["column"]),
+                                    str(data_example["situation"]["target_object"]["position"]["row"])])
+        unique_situation_str = '_'.join([placed_target, target_position])
+        if not self._coverage_worlds[split].get(unique_situation_str):
+            self._coverage_worlds[split][unique_situation_str] = 0
+        self._coverage_worlds[split][unique_situation_str] += 1
+        if not self._coverage_full[split].get(unique_command_str):
+            self._coverage_full[split][unique_command_str] = {}
+        if not self._coverage_full[split][unique_command_str].get(unique_situation_str):
+            self._coverage_full[split][unique_command_str][unique_situation_str] = 0
+        self._coverage_full[split][unique_command_str][unique_situation_str] += 1
 
     def save_position_counts(self, position_counts, file) -> {}:
         """
@@ -376,6 +416,36 @@ class GroundedScan(object):
             file.write("\n")
             file.write("\n")
 
+    @staticmethod
+    def write_counter_sheet(sheet, test_counter, train_counter):
+        sheet.write(0, 1, "Amount in test")
+        sheet.write(0, 2, "Amount in train")
+        # check coverage in train
+        for i, (train_key, train_count) in enumerate(train_counter.items()):
+            num_in_test = test_counter[train_key]
+            if not isinstance(num_in_test, int):
+                num_in_test = sum(num_in_test.values())
+                train_count = sum(train_count.values())
+            sheet.write(1 + i, 0, train_key)
+            sheet.write(1 + i, 1, num_in_test)
+            sheet.write(1 + i, 2, train_count)
+
+    @staticmethod
+    def write_nested_counter_sheet(sheet, test_counter, train_counter):
+        sheet.write(0, 1, "Amount in test")
+        sheet.write(0, 2, "Amount in train")
+        # check coverage in train
+        row_count = 1
+        for i, (train_key, train_counter) in enumerate(train_counter.items()):
+            test_counter = test_counter[train_key]
+            for key, count in train_counter.items():
+                combination = " ".join([train_key, key])
+                test_count = test_counter[key]
+                sheet.write(row_count, 0, combination)
+                sheet.write(row_count, 1, test_count)
+                sheet.write(row_count, 2, count)
+                row_count += 1
+
     def save_dataset_statistics(self, split="train") -> {}:
         """
         Summarizes the statistics and saves and prints them.
@@ -383,12 +453,12 @@ class GroundedScan(object):
         examples = self._data_pairs[split]
         for example in examples:
             self.update_data_statistics(example, split)
+        # General statistics
+        number_of_examples = len(self._data_pairs[split])
+        if number_of_examples == 0:
+            logger.info("WARNING: trying to save dataset statistics for an empty split {}.".format(split))
+            return
         with open(os.path.join(self.save_directory, split + "_dataset_stats.txt"), 'w') as infile:
-            # General statistics
-            number_of_examples = len(self._data_pairs[split])
-            if number_of_examples == 0:
-                logger.info("WARNING: trying to save dataset statistics for an empty split {}.".format(split))
-                return
             infile.write("Number of examples: {}\n".format(number_of_examples))
             infile.write("Number of examples of this split in train: {}\n".format(
                 str(self._k_shot_examples_in_train[split])))
@@ -407,6 +477,8 @@ class GroundedScan(object):
             verb_target_combinations = self._data_statistics[split]["verb_target_combinations"]
             infile.write("Verb target combinations:\n")
             for key, values in verb_target_combinations.items():
+                if not key:
+                    key = "None"
                 save_counter(" " + key, values, infile)
             infile.write("\n")
 
@@ -418,11 +490,15 @@ class GroundedScan(object):
             verb_adverb_combinations = self._data_statistics[split]["verb_adverb_combinations"]
             infile.write("Verb adverb combinations:\n")
             for key, values in verb_adverb_combinations.items():
+                if not key:
+                    key = "None"
                 save_counter(" " + key, values, infile)
             infile.write("\n")
             referred_targets = self._data_statistics[split]["referred_targets"]
             infile.write("\nReferred Targets: \n")
             for key, values in referred_targets.items():
+                if not key:
+                    key = "None"
                 save_counter("  " + key, values, infile)
             placed_targets = self._data_statistics[split]["placed_targets"]
             infile.write("\n")
@@ -430,8 +506,48 @@ class GroundedScan(object):
             situation_stats = self._data_statistics[split]["situations"]
             infile.write("\nObjects placed in the world for particular referenced objects: \n")
             for key, values in situation_stats.items():
+                if not key:
+                    key = "None"
                 save_counter("  " + key, values["num_objects_placed"], infile)
                 save_counter("  " + key, values["objects_in_world"], infile)
+
+        workbook = Workbook()
+        sheet = workbook.add_sheet("Coverage Commands")
+        sheet.write(0, 0, "Command")
+        sheet.write(0, 1, "Num occurrence")
+        # Coverage Statistics
+        for i, (command, count) in enumerate(self._coverage_commands[split].items()):
+            sheet.write(1 + i, 0, command)
+            sheet.write(1 + i, 1, count)
+        sheet = workbook.add_sheet("Coverage World States")
+        sheet.write(0, 0, "World State")
+        sheet.write(0, 1, "Num occurrence")
+        # Coverage Statistics
+        for i, (command, count) in enumerate(self._coverage_worlds[split].items()):
+            sheet.write(1 + i, 0, command)
+            sheet.write(1 + i, 1, count)
+        sheet = workbook.add_sheet("World states per command")
+        sheet.write(0, 0, "Command")
+        sheet.write(0, 1, "Num unique world states")
+        sheet.write(0, 2, "Num total world states")
+        for i, (unique_command, world_states) in enumerate(self._coverage_full[split].items()):
+            sheet.write(1 + i, 0, unique_command)
+            sheet.write(1 + i, 1, len(world_states))
+            sheet.write(1 + i, 2, sum(world_states.values()))
+        if split == "target_lengths":
+            keys_to_add = ["verbs_in_command", "manners_in_command",
+                           "referred_targets", "placed_targets", "direction_to_target"]
+            for key in keys_to_add:
+                sheet = workbook.add_sheet(key.replace("_", " "))
+                sheet.write(0, 0, key)
+                self.write_counter_sheet(sheet, self._data_statistics[split][key],
+                                         self._data_statistics["train"][key])
+            sheet = workbook.add_sheet("verb adverb combinations")
+            sheet.write(0, 0, "verb_adverb_combinations")
+            self.write_nested_counter_sheet(sheet, self._data_statistics[split]["verb_adverb_combinations"],
+                                            self._data_statistics["train"]["verb_adverb_combinations"])
+        outfile_excel = os.path.join(self.save_directory, split + "_dataset_stats.xls")
+        workbook.save(outfile_excel)
 
         for key, values in self._data_statistics[split]["situations"].items():
             if len(values["objects_in_world"]):
@@ -499,18 +615,25 @@ class GroundedScan(object):
             for split, examples in all_data["examples"].items():
                 if split == "adverb_1":
                     num_examples = len(examples)
-                    k_random_indices = random.sample(range(0, num_examples), k=k)
+                    if num_examples:
+                        k_random_indices = random.sample(range(0, num_examples), k=k)
+                    else:
+                        k_random_indices = []
                 else:
                     k_random_indices = []
                 for i, example in enumerate(examples):
                     if i in k_random_indices:
                         dataset._data_pairs["train"].append(example)
-                        dataset.update_data_statistics(example, "train")
+                        # dataset.update_data_statistics(example, "train")
                         dataset._data_pairs["dev"].append(example)
-                        dataset.update_data_statistics(example, "dev")
+                        # dataset.update_data_statistics(example, "dev")
                     else:
                         dataset._data_pairs[split].append(example)
-                        dataset.update_data_statistics(example, split)
+                        # dataset.update_data_statistics(example, split)
+                    if split == "train" and dataset._vocabulary.translate_meaning("cautiously") in example["command"]:
+                        if dataset._vocabulary.translate_meaning("cautiously"):
+                            dataset._data_pairs["dev"].append(example)
+                            # dataset.update_data_statistics(example, "dev")
             return dataset
 
     def generate_all_commands(self) -> {}:
@@ -635,12 +758,19 @@ class GroundedScan(object):
         self.initialize_world(current_situation, mission=current_mission)
         return target_commands, target_demonstration, action
 
-    def initialize_world(self, situation: Situation, mission="") -> {}:
+    def initialize_world(self, situation: Situation, mission="", manner=None, verb=None, end_pos=None,
+                         required_push=0, required_pull=0, num_instructions=0) -> {}:
         """
         Initializes the world with the passed situation.
         :param situation: class describing the current situation in the world, fully determined by a grid size,
         agent position, agent direction, list of placed objects, an optional target object and optional carrying object.
-        :param mission: a string defining a command (e.g. "Walk to a green circle.")
+        :param mission: a string defining a command (e.g. "Walk to a green circle."
+        :param manner: a string defining the manner of the mission (e.g., "while spinning")
+        :param verb: a string defining the transitive verb of the mission (e.g., "push")
+        :param end_pos: position tuple of where the agent and target object should end up (e.g., (3, 4))
+        :param required_push: amount of push-actions required in a correct demonstration of this mission (e.g., 2)
+        :param required_pull: amount of pull-actions required in a correct demonstration of this mission (e.g., 0)
+        :param num_instructions: amount of actions in expert target demonstration
         """
         objects = []
         for positioned_object in situation.placed_objects:
@@ -648,7 +778,12 @@ class GroundedScan(object):
         self._world.initialize(objects, agent_position=situation.agent_pos, agent_direction=situation.agent_direction,
                                target_object=situation.target_object, carrying=situation.carrying)
         if mission:
-            self._world.set_mission(mission)
+            is_transitive = False
+            if verb in self._vocabulary.get_transitive_verbs():
+                is_transitive = True
+            self._world.set_mission(mission, manner=manner, verb=verb, is_transitive=is_transitive,
+                                    end_pos=end_pos, required_push=required_push, required_pull=required_pull,
+                                    num_instructions=num_instructions)
 
     def visualize_attention(self, input_commands: List[str], target_commands: List[str], situation: Situation,
                             attention_weights_commands: List[List[int]], attention_weights_situation: List[List[int]]):
@@ -657,19 +792,18 @@ class GroundedScan(object):
     def error_analysis(self, predictions_file: str, output_file: str, save_directory: str):
         assert os.path.exists(predictions_file), "Trying to open a non-existing predictions file."
         error_analysis = {
-            "target_length": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "input_length": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "verb_in_command": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "manner": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "referred_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "referred_size": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "distance_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "direction_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
-            "actual_target": defaultdict(lambda: {"accuracy": [], "exact_match": [], "position_accuracy": []}),
+            "target_length": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "input_length": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "verb_in_command": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "manner": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "referred_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "referred_size": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "distance_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "direction_to_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
+            "actual_target": defaultdict(lambda: {"accuracy": [], "exact_match": []}),
         }
         all_accuracies = []
         exact_matches = []
-        position_accuracies = []
         workbook = Workbook()
         with open(predictions_file, 'r') as infile:
             data = json.load(infile)
@@ -679,11 +813,9 @@ class GroundedScan(object):
                 # Get the scores of the current example.
                 accuracy = predicted_example["accuracy"]
                 exact_match = predicted_example["exact_match"]
-                position_accuracy = predicted_example["position_accuracy"]
-
                 all_accuracies.append(accuracy)
                 exact_matches.append(exact_match)
-                position_accuracies.append(position_accuracy)
+
                 # Get the information about the current example.
                 example_information = {
                     "input_length": len(predicted_example["input"]),
@@ -714,58 +846,42 @@ class GroundedScan(object):
                 example_information["direction_to_target"] = situation.direction_to_target
                 example_information["distance_to_target"] = situation.distance_to_target
                 example_information["manner"] = manner
+
                 # Add that information to the analysis.
                 for key in error_analysis.keys():
                     error_analysis[key][example_information[key]]["accuracy"].append(accuracy)
                     error_analysis[key][example_information[key]]["exact_match"].append(exact_match)
-                    error_analysis[key][example_information[key]]["position_accuracy"].append(position_accuracy)
 
         # Write the information to a file and make plots
         with open(output_file, 'w') as outfile:
             outfile.write("Error Analysis\n\n")
             outfile.write(" Mean accuracy: {}\n".format(np.mean(np.array(all_accuracies))))
-            outfile.write(" Mean position accuracy: {}\n".format(np.mean(np.array(position_accuracies))))
             exact_matches_counter = Counter(exact_matches)
             outfile.write(" Num. exact matches: {}\n".format(exact_matches_counter[True]))
             outfile.write(" Num not exact matches: {}\n\n".format(exact_matches_counter[False]))
-
             for key, values in error_analysis.items():
                 sheet = workbook.add_sheet(key)
                 sheet.write(0, 0, key)
                 sheet.write(0, 1, "Num examples")
                 sheet.write(0, 2, "Mean accuracy")
                 sheet.write(0, 3, "Std. accuracy")
-
-                sheet.write(0, 5, "Mean position accuracy")
-
-                sheet.write(0, 6, "Exact Match")
-                sheet.write(0, 7, "Not Exact Match")
-                sheet.write(0, 8, "Exact Match Percentage")
+                sheet.write(0, 4, "Exact Match")
+                sheet.write(0, 5, "Not Exact Match")
+                sheet.write(0, 6, "Exact Match Percentage")
                 outfile.write("\nDimension {}\n\n".format(key))
                 means = {}
-                position_means = {}
                 standard_deviations = {}
-                position_standard_deviations = {}
                 num_examples = {}
                 exact_match_distributions = {}
                 exact_match_relative_distributions = {}
-
                 for i, (item_key, item_values) in enumerate(values.items()):
                     outfile.write("  {}:{}\n\n".format(key, item_key))
                     accuracies = np.array(item_values["accuracy"])
                     mean_accuracy = np.mean(accuracies)
                     means[item_key] = mean_accuracy
-
-                    position_accuracies = np.array(item_values["position_accuracy"])
-                    mean_position_accuracy = np.mean(position_accuracies)
-                    position_means[item_key] = mean_position_accuracy
-
                     num_examples[item_key] = len(item_values["accuracy"])
                     standard_deviation = np.std(accuracies)
                     standard_deviations[item_key] = standard_deviation
-
-                    position_standard_deviation = np.std(position_accuracies)
-                    position_standard_deviations[item_key] = position_standard_deviation
                     exact_match_distribution = Counter(item_values["exact_match"])
                     exact_match_distributions[item_key] = exact_match_distribution
                     exact_match_relative_distributions[item_key] = exact_match_distribution[True] / (
@@ -775,12 +891,6 @@ class GroundedScan(object):
                     outfile.write("    Min. accuracy: {}\n".format(np.min(accuracies)))
                     outfile.write("    Max. accuracy: {}\n".format(np.max(accuracies)))
                     outfile.write("    Std. accuracy: {}\n".format(standard_deviation))
-                   
-                    outfile.write("    Mean position accuracy: {}\n".format(mean_position_accuracy))
-                    outfile.write("    Min. accuracy: {}\n".format(np.min(position_accuracies)))
-                    outfile.write("    Max. accuracy: {}\n".format(np.max(position_accuracies)))
-                    outfile.write("    Std. accuracy: {}\n".format(position_standard_deviation))
-
                     outfile.write("    Num. exact match: {}\n".format(exact_match_distribution[True]))
                     outfile.write("    Num. not exact match: {}\n\n".format(exact_match_distribution[False]))
                     sheet.write(i + 1, 0, item_key)
@@ -788,18 +898,12 @@ class GroundedScan(object):
                     sheet.write(i + 1, 2, mean_accuracy)
                     sheet.write(i + 1, 3, standard_deviation)
                     sheet.write(i + 1, 4, exact_match_distribution[True])
-
-                    sheet.write(i + 1, 5, mean_position_accuracy)
-
-                    sheet.write(i + 1, 6, exact_match_distribution[False])
-                    sheet.write(i + 1, 7, exact_match_distribution[True] / (
+                    sheet.write(i + 1, 5, exact_match_distribution[False])
+                    sheet.write(i + 1, 6, exact_match_distribution[True] / (
                             exact_match_distribution[False] + exact_match_distribution[True]))
                 outfile.write("\n\n\n")
                 bar_plot(means, title=key, save_path=os.path.join(save_directory, key + '_accuracy'),
                          errors=standard_deviations, y_axis_label="accuracy")
-                bar_plot(position_means, title=key, save_path=os.path.join(save_directory, key + '_position_accuracy'),
-                         errors=position_standard_deviations, y_axis_label="position_accuracy")
-
                 bar_plot(exact_match_relative_distributions, title=key, save_path=os.path.join(
                     save_directory, key + '_exact_match_rel'),
                          errors={}, y_axis_label="Exact Match Percentage")
@@ -909,13 +1013,32 @@ class GroundedScan(object):
         return save_dirs
 
     def visualize_data_example(self, data_example: dict) -> str:
-        command, meaning, derivation, situation, actual_target_commands, target_demonstration, _ = self.parse_example(
-            data_example)
+        (command, meaning, derivation, situation, actual_target_commands,
+         target_demonstration, _, _) = self.parse_example(data_example)
         mission = ' '.join(["Command:", ' '.join(command), "\nMeaning: ", ' '.join(meaning),
                             "\nTarget:"] + actual_target_commands)
         save_dir = self.visualize_command(situation, command, target_demonstration,
                                           mission=mission)
         return save_dir
+
+    def initialize_rl_example(self, data_example: dict) -> {}:
+        (command, meaning, derivation, situation,
+         actual_target_commands, target_demonstration, action, manner) = self.parse_example(data_example)
+        mission = ' '.join(["Command:", ' '.join(command), "\nMeaning: ", ' '.join(meaning),
+                            "\nTarget:"] + actual_target_commands)
+        end_position = (target_demonstration[-1].agent_pos.column, target_demonstration[-1].agent_pos.row)
+        num_instructions = len(actual_target_commands)
+        required_push = actual_target_commands.count("push")
+        required_pull = actual_target_commands.count("pull")
+        self.initialize_world(situation, mission, manner, action, end_position, required_push, required_pull,
+                              num_instructions)
+        return
+
+    def take_step(self, action_command: str,
+                  simple_situation_representation=True) -> (np.array, int):
+        new_situation, reward = self._world.take_action(action_command,
+                                                        simple_situation_representation=simple_situation_representation)
+        return new_situation, reward
 
     def visualize_data_examples(self) -> List[str]:
         if len(self._examples_to_visualize) == 0:
@@ -1255,7 +1378,7 @@ class GroundedScan(object):
     def get_data_pairs(self, max_examples=None, num_resampling=1, other_objects_sample_percentage=0.5,
                        split_type="uniform", visualize_per_template=0, visualize_per_split=0, train_percentage=0.8,
                        min_other_objects=0, k_shot_generalization=0, make_dev_set=False,
-                       cut_off_target_length=25) -> {}:
+                       cut_off_target_length=25, max_examples_per_template=-1) -> {}:
         """
         Generate a set of situations and generate all possible commands based on the current grammar and lexicon,
         match commands to situations based on relevance (if a command refers to a target object, it needs to be
@@ -1279,6 +1402,7 @@ class GroundedScan(object):
             visualized_per_template = 0
             visualized_per_split = {split: 0 for split in self._possible_splits}
             for derivation in template_derivations:
+                template_example_count = 0
                 arguments = []
                 derivation.meaning(arguments)
                 assert len(arguments) == 1, "Only one target object currently supported."
@@ -1302,6 +1426,8 @@ class GroundedScan(object):
                         idx_for_train = set(idx_for_train)
                     for i, relevant_situation in enumerate(relevant_situations):
                         visualize = False
+                        if 0 < max_examples_per_template < template_example_count:
+                            continue
                         if (example_count + 1) % 10000 == 0:
                             logger.info("Number of examples: {}".format(example_count + 1))
                         if max_examples:
@@ -1360,6 +1486,7 @@ class GroundedScan(object):
                         for split in splits:
                             self._template_identifiers[split].append(template_num)
                         example_count += 1
+                        template_example_count += 1
                         if visualize:
                             visualized_per_template += 1
                         self._world.clear_situation()
