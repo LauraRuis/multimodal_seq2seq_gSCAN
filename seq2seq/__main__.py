@@ -4,14 +4,17 @@ import os
 import torch
 
 from seq2seq.gSCAN_dataset import GroundedScanDataset
+from seq2seq.rl_dataset import GroundedScanEnvironment
 from seq2seq.model import Model
 from seq2seq.train import train
 from seq2seq.predict import predict_and_save
+from seq2seq.ppo import train_ppo
+from seq2seq.visualize_rewards import visualize_rewards
 
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT, level=logging.DEBUG,
                     datefmt="%Y-%m-%d %H:%M")
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GroundedSCAN_learning")
 use_cuda = True if torch.cuda.is_available() else False
 
 if use_cuda:
@@ -21,14 +24,14 @@ if use_cuda:
 parser = argparse.ArgumentParser(description="Sequence to sequence models for Grounded SCAN")
 
 # General arguments
-parser.add_argument("--mode", type=str, default="run_tests", help="train, test or predict", required=True)
+parser.add_argument("--mode", type=str, default="rl", help="train, test, predict, rl, or visualize", required=True)
 parser.add_argument("--output_directory", type=str, default="output", help="In this directory the models will be "
                                                                            "saved. Will be created if doesn't exist.")
 parser.add_argument("--resume_from_file", type=str, default="", help="Full path to previously saved model to load.")
 
 # Data arguments
 parser.add_argument("--split", type=str, default="test", help="Which split to get from Grounded Scan.")
-parser.add_argument("--data_directory", type=str, default="data/uniform_dataset", help="Path to folder with data.")
+parser.add_argument("--data_directory", type=str, default="data/rl_simplified_dev", help="Path to folder with data.")
 parser.add_argument("--input_vocab_path", type=str, default="training_input_vocab.txt",
                     help="Path to file with input vocabulary as saved by Vocabulary class in gSCAN_dataset.py")
 parser.add_argument("--target_vocab_path", type=str, default="training_target_vocab.txt",
@@ -36,7 +39,7 @@ parser.add_argument("--target_vocab_path", type=str, default="training_target_vo
 parser.add_argument("--generate_vocabularies", dest="generate_vocabularies", default=False, action="store_true",
                     help="Whether to generate vocabularies based on the data.")
 parser.add_argument("--load_vocabularies", dest="generate_vocabularies", default=True, action="store_false",
-                    help="Whether to use previously saved vocabularies.")
+                    help="Whether to use rewardspreviously saved vocabularies.")
 
 # Training and learning arguments
 parser.add_argument("--training_batch_size", type=int, default=50)
@@ -72,7 +75,7 @@ parser.add_argument("--image_situation_representation", dest="simple_situation_r
 parser.add_argument("--cnn_hidden_num_channels", type=int, default=50)
 parser.add_argument("--cnn_kernel_size", type=int, default=7, help="Size of the largest filter in the world state "
                                                                    "model.")
-parser.add_argument("--cnn_dropout_p", type=float, default=0.1, help="Dropout applied to the output features of the "
+parser.add_argument("--cnn_dropout_p", type=float, default=0., help="Dropout applied to the output features of the "
                                                                      "world state model.")
 parser.add_argument("--auxiliary_task", dest="auxiliary_task", default=False, action="store_true",
                     help="If set to true, the model predicts the target location from the joint attention over the "
@@ -83,7 +86,7 @@ parser.add_argument("--no_auxiliary_task", dest="auxiliary_task", default=True, 
 parser.add_argument("--embedding_dimension", type=int, default=25)
 parser.add_argument("--num_encoder_layers", type=int, default=1)
 parser.add_argument("--encoder_hidden_size", type=int, default=100)
-parser.add_argument("--encoder_dropout_p", type=float, default=0.3, help="Dropout on instruction embeddings and LSTM.")
+parser.add_argument("--encoder_dropout_p", type=float, default=0., help="Dropout on instruction embeddings and LSTM.")
 parser.add_argument("--encoder_bidirectional", dest="encoder_bidirectional", default=True, action="store_true")
 parser.add_argument("--encoder_unidirectional", dest="encoder_bidirectional", default=False, action="store_false")
 
@@ -91,7 +94,7 @@ parser.add_argument("--encoder_unidirectional", dest="encoder_bidirectional", de
 parser.add_argument("--num_decoder_layers", type=int, default=1)
 parser.add_argument("--attention_type", type=str, default='bahdanau', choices=['bahdanau', 'luong'],
                     help="Luong not properly implemented.")
-parser.add_argument("--decoder_dropout_p", type=float, default=0.3, help="Dropout on decoder embedding and LSTM.")
+parser.add_argument("--decoder_dropout_p", type=float, default=0., help="Dropout on decoder embedding and LSTM.")
 parser.add_argument("--decoder_hidden_size", type=int, default=100)
 parser.add_argument("--conditional_attention", dest="conditional_attention", default=True, action="store_true",
                     help="If set to true joint attention over the world state conditioned on the input instruction is"
@@ -100,6 +103,37 @@ parser.add_argument("--no_conditional_attention", dest="conditional_attention", 
 
 # Other arguments
 parser.add_argument("--seed", type=int, default=42)
+
+# RL-specific arguments
+parser.add_argument("--ppo_log_interval", type=int, default=100, help="After how many timesteps to log progress.")
+parser.add_argument("--max_episode_length", type=int, default=40, help="After how many timesteps to cut off an "
+                                                                       "episode.")
+parser.add_argument("--timesteps_per_epoch", type=int, default=2048, help="How many times to interact with the "
+                                                                          "environment per epoch.")
+parser.add_argument("--num_epochs", type=int, default=10, help="How many epochs to train the policy.")
+parser.add_argument("--pi_lr", type=float, default=0.0003, help="Learning rate for policy gradient updates.")
+parser.add_argument("--vf_lr", type=float, default=0.001, help="Learning rate for policy gradient updates.")
+parser.add_argument("--train_pi_iters", type=int, default=80, help="How many gradient updates per policy update.")
+parser.add_argument("--train_v_iters", type=int, default=80, help="How many gradient updates per value f update.")
+parser.add_argument("--ppo_log_every", type=int, default=40, help="How often per policy update to log progress.")
+parser.add_argument("--visualize_trajectory_every", type=int, default=1000,
+                    help="Every how many timesteps to visualize the current trajectory.")
+parser.add_argument("--target_kl", type=float, default=0.01, help="Roughly what KL divergence we think is appropriate "
+                                                                  "between new and old policies after an update. "
+                                                                  "This will get used for early stopping."
+                                                                  " (Usually small, 0.01 or 0.05.)")
+parser.add_argument("--gamma", type=float, default=0.99, help="Discount factor. (Always between 0 and 1.)")
+parser.add_argument("--gae_lambda", type=float, default=0.95, help="Lambda for GAE-Lambda. "
+                                                                   "(Always between 0 and 1, close to 1.)")
+parser.add_argument("--ent_coef", type=float, default=0.0, help="")
+parser.add_argument("--clip_ratio", type=float, default=0.2, help="")
+parser.add_argument("--vf_coef", type=float, default=0.5, help="")
+parser.add_argument("--max_grad_norm", type=float, default=0.5, help="")
+parser.add_argument("--hidden_size", type=int, default=100)
+parser.add_argument("--total_timesteps", type=int, default=25000)
+parser.add_argument("--evaluate_every_epoch", type=int, default=20, help="How often to evaluate the current policy"
+                                                                         " greedily.")
+parser.add_argument("--rewards_file", type=str, default="", help="File with reward on each line.")
 
 
 def main(flags):
@@ -163,6 +197,22 @@ def main(flags):
             logger.info("Saved predictions to {}".format(output_file))
     elif flags["mode"] == "predict":
         raise NotImplementedError()
+    elif flags["mode"] == "rl":
+        logger.info("Loading Training set...")
+        training_env = GroundedScanEnvironment(data_path, flags["data_directory"],
+                                               split="train",
+                                               seed=flags["seed"],
+                                               input_vocabulary_file=flags["input_vocab_path"],
+                                               target_vocabulary_file=flags["target_vocab_path"],
+                                               generate_vocabulary=flags["generate_vocabularies"], k=1)
+        if flags["generate_vocabularies"]:
+            training_env.save_vocabularies(flags["input_vocab_path"], flags["target_vocab_path"])
+            logger.info(
+                "Saved vocabularies to {} for input and {} for target.".format(flags["input_vocab_path"],
+                                                                               flags["target_vocab_path"]))
+        train_ppo(training_env=training_env, **flags)
+    elif flags["mode"] == "visualize":
+        visualize_rewards(flags["rewards_file"])
     else:
         raise ValueError("Wrong value for parameters --mode ({}).".format(flags["mode"]))
 

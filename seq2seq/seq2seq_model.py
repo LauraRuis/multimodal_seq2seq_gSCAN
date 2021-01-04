@@ -13,7 +13,7 @@ from seq2seq.helpers import sequence_mask
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GroundedSCAN_learning")
 
 
 class EncoderRNN(nn.Module):

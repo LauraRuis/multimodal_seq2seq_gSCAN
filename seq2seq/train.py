@@ -8,7 +8,7 @@ from seq2seq.gSCAN_dataset import GroundedScanDataset
 from seq2seq.helpers import log_parameters
 from seq2seq.evaluate import evaluate
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GroundedSCAN_learning")
 use_cuda = True if torch.cuda.is_available() else False
 
 

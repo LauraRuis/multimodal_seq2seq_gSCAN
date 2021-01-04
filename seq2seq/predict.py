@@ -10,7 +10,7 @@ from seq2seq.helpers import sequence_accuracy
 from seq2seq.gSCAN_dataset import GroundedScanDataset
 import pdb
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GroundedSCAN_learning")
 
 
 def predict_and_save(dataset: GroundedScanDataset, model: nn.Module, output_file_path: str, max_decoding_steps: int,

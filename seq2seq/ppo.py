@@ -5,11 +5,15 @@
 
 import torch
 from torch.optim import Adam
+from torch.nn import functional as F
 from typing import Tuple, Dict, List, Iterator
 import numpy as np
 import logging
-from stable_baselines3 import PPO
 import random
+import gym
+
+from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3.common.env_util import make_vec_env
 
 from seq2seq.helpers import log_parameters, pack_state_tensors, discount_cumsum
 from seq2seq.rl_dataset import GroundedScanEnvironment
@@ -120,7 +124,7 @@ class PPOBuffer(object):
 class PPO(object):
     """..."""
 
-    def __init__(self, actor_critic: ActorCritic, betas: Tuple[float, float],
+    def __init__(self, actor_critic: ActorCritic, betas: Tuple[float, float], max_grad_norm=0.5,
                  gamma=0.99, pi_lr=3e-4, vf_coef=1., clip_ratio=0.2, target_kl=0.01, log_every=100):
         self.clip_ratio = clip_ratio
         self.vf_coef = vf_coef
@@ -128,6 +132,7 @@ class PPO(object):
         self.gamma = gamma
         self.target_kl = target_kl
         self.log_every = log_every
+        self.max_grad_norm = max_grad_norm
 
         self.policy = actor_critic
         log_parameters(actor_critic)
@@ -164,14 +169,13 @@ class PPO(object):
         pi_info = dict(kl=approx_kl, entropy=entropy, clipfrac=clipfrac)
 
         # Calculate MSE of values.
-        loss_v = ((value - returns) ** 2).mean()
+        loss_v = F.mse_loss(returns.squeeze(), value.squeeze())
 
         return loss_pi, loss_v, pi_info
 
     def update(self, buffer: PPOBuffer, train_pi_iters: int, training_batch_size: int) -> Tuple[float, float,
                                                                                                 float, float]:
         data = buffer.get()
-
         with torch.no_grad():
             pi_l_old, v_l_old, pi_info_old = self.compute_loss_pi_v(data)
             pi_l_old, v_l_old = pi_l_old.item(), v_l_old.item()
@@ -192,6 +196,7 @@ class PPO(object):
                 num_updates += 1
                 loss = loss_pi + self.vf_coef * loss_v
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
                 self.pi_vf_optimizer.step()
             if np.mean(np.array(approx_kl_divergences)) > 1.5 * self.target_kl:
                 logger.info("Early stopping  due to reaching max kl at step %d of %d." %
@@ -226,12 +231,12 @@ def evaluate(initial_observations: List[Tuple[dict, np.ndarray, np.ndarray]], po
             if done:
                 num_done += 1
                 break
-        if done:
-            env.dataset.visualize_current_sequence(parent_save_dir="validation_episodes_done_epoch_{}".format(epoch),
-                                                   attention_weights=attention_weights_episode)
-        else:
-            env.dataset.visualize_current_sequence(parent_save_dir="validation_episodes_failed_epoch_{}".format(epoch),
-                                                   attention_weights=attention_weights_episode)
+        # if done:
+        #     env.dataset.visualize_current_sequence(parent_save_dir="validation_episodes_done_epoch_{}".format(epoch),
+        #                                            attention_weights=attention_weights_episode)
+        # else:
+        #     env.dataset.visualize_current_sequence(parent_save_dir="validation_episodes_failed_epoch_{}".format(epoch),
+        #                                            attention_weights=attention_weights_episode)
         rewards_per_episode.append(episode_reward)
         episode_lengths.append(episode_length)
     return rewards_per_episode, episode_lengths, num_done
@@ -244,9 +249,8 @@ def train_ppo(training_env: GroundedScanEnvironment, simple_situation_representa
               num_encoder_layers: int, encoder_bidirectional: bool, num_decoder_layers: int, cnn_dropout_p: float,
               decoder_dropout_p: float, train_pi_iters: int, cnn_kernel_size: int, cnn_hidden_num_channels: int,
               encoder_dropout_p: float, auxiliary_task: bool, conditional_attention: bool, attention_type: str,
-              evaluate_every_epoch: int, total_timesteps: int,
-              train_v_iters: int, ppo_log_every: int, visualize_trajectory_every: int, output_directory: str,
-              gamma=0.99, lam=0.97, target_kl=0.01, clip_ratio=0.2, ent_coef=0.0, vf_coef=0.5, max_grad_norm=0.5,
+              evaluate_every_epoch: int, ppo_log_every: int, visualize_trajectory_every: int, output_directory: str,
+              gamma=0.99, gae_lambda=0.97, target_kl=0.01, clip_ratio=0.2, ent_coef=0.0, vf_coef=0.5, max_grad_norm=0.5,
               seed=1234, **kwargs):
     # Random seed
     torch.manual_seed(seed)
@@ -289,33 +293,30 @@ def train_ppo(training_env: GroundedScanEnvironment, simple_situation_representa
     average_v_loss = 0
     num_updates = 0
     stop_training = False
-    stop_visualizing = False
-    done = False
     state = training_env.reset()
 
     buffer = PPOBuffer(training_env.max_input_length, training_env.grid_dimensions[0],
                        training_env.grid_dimensions[-1], action_dim=1, size=timesteps_per_epoch,
-                       gamma=gamma, gae_lambda=lam)
+                       gamma=gamma, gae_lambda=gae_lambda)
 
     # Initialize PPO algorithm
-    ppo = PPO(actor_critic, betas, gamma, pi_lr, vf_coef, clip_ratio, target_kl, ppo_log_every)
+    ppo = PPO(actor_critic, betas, max_grad_norm=max_grad_norm, gamma=gamma, pi_lr=pi_lr,
+              vf_coef=vf_coef, clip_ratio=clip_ratio, target_kl=target_kl, log_every=ppo_log_every)
 
     for i_epoch in range(num_epochs):
+        # training_env.set_progress_reward()
         for time_step in range(timesteps_per_epoch):
-            # Unpack the state into tensors
             input_command_t, input_command_lengths, world_state_t = pack_state_tensors(state)
             action, value, log_probs, attn = ppo.policy.step(input_command_t, input_command_lengths, world_state_t)
             next_state, reward, done, _ = training_env.step(action.item() + 3)
             episode_reward += reward
             episode_length += 1
 
-            # Saving reward and is_terminal:
             buffer.store(np.array(state[0]), len(state[0]), np.array(state[1]), action, reward, value,
                          log_probs[action.item()])
 
             state = next_state
 
-            # Update if its time
             timeout = episode_length == max_episode_length
             terminal = done or timeout
             epoch_ended = time_step == timesteps_per_epoch - 1
@@ -343,14 +344,13 @@ def train_ppo(training_env: GroundedScanEnvironment, simple_situation_representa
         average_v_loss += av_loss_v
         num_updates += 1
         logger.info("Epoch %d. Read dataset %d times. Percentage progress current epoch: %3.2f" % (
-        i_epoch, training_env.read_full_training_set, training_env.percentage_progress
-        ))
+            i_epoch, training_env.read_full_training_set, training_env.percentage_progress))
         logger.info("Epoch %d. Num. ep. done/terminated: %d/%d, Av. ep. length: %d, av. ep. reward: %5.2f" % (
-        i_epoch, num_episodes_done, num_episodes_terminated,
-        average_episode_length / max(num_episodes_terminated, 1),
-        average_episode_reward / max(num_episodes_terminated, 1)))
+            i_epoch, num_episodes_done, num_episodes_terminated,
+            average_episode_length / max(num_episodes_terminated, 1),
+            average_episode_reward / max(num_episodes_terminated, 1)))
         logger.info("Epoch %d. Loss pi: %5.4f, Average loss pi: %5.4f." % (i_epoch, av_loss_pi,
-        average_pi_loss / num_updates))
+                                                                           average_pi_loss / num_updates))
         logger.info("Epoch %d. Loss v: %5.4f, Average loss v: %5.4f." % (i_epoch, av_loss_v,
                                                                          average_v_loss / num_updates))
         if (i_epoch + 1) % evaluate_every_epoch == 0:
@@ -359,12 +359,9 @@ def train_ppo(training_env: GroundedScanEnvironment, simple_situation_representa
                                                                       ppo.policy, training_env, i_epoch,
                                                                       max_episode_length)
             logger.info("Evaluation Epoch %d. Num. ep. terminated: %d/%d, Av. ep. length: %d, av. ep. reward: %5.2f" % (
-                i_epoch, num_done, len(evaluation_observations), np.mean(np.array(episode_lengths)),
-                np.mean(np.array(rewards_per_episode))))
-        # if np.mean(np.array(rewards_per_episode)) >= 1:
-        #     stop_training = True
+                i_epoch, num_done, len(evaluation_observations), np.mean(np.array(episode_lengths)).item(),
+                np.mean(np.array(rewards_per_episode)).item()))
         average_episode_length = 0
         average_episode_reward = 0
         num_episodes_terminated = 0
         num_episodes_done = 0
-

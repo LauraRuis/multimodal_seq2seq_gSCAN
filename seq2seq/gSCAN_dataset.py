@@ -11,7 +11,7 @@ import numpy as np
 from GroundedScan.dataset import GroundedScan
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GroundedSCAN_learning")
 
 
 class Vocabulary(object):
