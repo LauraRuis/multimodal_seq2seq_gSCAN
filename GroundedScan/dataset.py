@@ -99,6 +99,7 @@ class GroundedScan(object):
         self._coverage_commands = {split: {} for split in self._possible_splits}
         self._coverage_worlds = {split: {} for split in self._possible_splits}
         self._coverage_full = {split: {} for split in self._possible_splits}
+        self._longest_input_sequence = -1
 
     def reset_dataset(self):
         self._grammar.reset_grammar()
@@ -165,8 +166,16 @@ class GroundedScan(object):
                    "target_command": target_commands}
 
     @property
+    def max_input_length(self):
+        return self._longest_input_sequence
+
+    @property
     def situation_image_dimension(self):
         return self._world.get_current_situation_image().shape[0]
+
+    @property
+    def situation_grid_dimensions(self):
+        return self._world.get_current_situation_grid_repr().shape
 
     def num_examples(self, split="train"):
         return len(self._data_pairs[split])
@@ -622,6 +631,9 @@ class GroundedScan(object):
                 else:
                     k_random_indices = []
                 for i, example in enumerate(examples):
+                    input_length = len(example["command"].split(","))
+                    if input_length > dataset._longest_input_sequence:
+                        dataset._longest_input_sequence = input_length
                     if i in k_random_indices:
                         dataset._data_pairs["train"].append(example)
                         # dataset.update_data_statistics(example, "train")
@@ -1021,7 +1033,7 @@ class GroundedScan(object):
                                           mission=mission)
         return save_dir
 
-    def initialize_rl_example(self, data_example: dict) -> {}:
+    def initialize_rl_example(self, data_example: dict, simplified_world_representation=True) -> {}:
         (command, meaning, derivation, situation,
          actual_target_commands, target_demonstration, action, manner) = self.parse_example(data_example)
         mission = ' '.join(["Command:", ' '.join(command), "\nMeaning: ", ' '.join(meaning),
@@ -1032,13 +1044,22 @@ class GroundedScan(object):
         required_pull = actual_target_commands.count("pull")
         self.initialize_world(situation, mission, manner, action, end_position, required_push, required_pull,
                               num_instructions)
-        return
+        if simplified_world_representation:
+            current_situation = self._world.get_current_situation_grid_repr()
+        else:
+            current_situation = self._world.get_current_situation_image()
+        return command, current_situation
 
     def take_step(self, action_command: str,
-                  simple_situation_representation=True) -> (np.array, int):
-        new_situation, reward = self._world.take_action(action_command,
-                                                        simple_situation_representation=simple_situation_representation)
-        return new_situation, reward
+                  simple_situation_representation=True,
+                  progress_reward=False) -> (np.array, int, bool):
+        new_situation, reward, done = self._world.take_action(
+            action_command, simple_situation_representation=simple_situation_representation,
+            progress_reward=progress_reward)
+        return new_situation, reward, done
+
+    def get_current_situation_grid_repr(self):
+        return self._world.get_current_situation_grid_repr()
 
     def visualize_data_examples(self) -> List[str]:
         if len(self._examples_to_visualize) == 0:
@@ -1115,6 +1136,54 @@ class GroundedScan(object):
         self.initialize_world(current_situation, mission=current_mission)
 
         return movie_dir
+
+    def visualize_current_sequence(self, parent_save_dir, attention_weights):
+        # Save current situation.
+        current_situation = self._world.get_current_situation()
+
+        mission = self._world.mission
+        # Initialize directory with current command as its name.
+        mission_folder = '_'.join(self._world.mission.split("\n")[0].split("Command:")[1].split())
+        if parent_save_dir:
+            mission_folder = os.path.join(parent_save_dir, mission_folder)
+            if not os.path.exists(os.path.join(self.save_directory, parent_save_dir)):
+                os.mkdir(os.path.join(self.save_directory, parent_save_dir))
+        full_dir = os.path.join(self.save_directory, mission_folder)
+        if not os.path.exists(full_dir):
+            os.mkdir(full_dir)
+            file_count = 0
+        else:
+            files_list = os.listdir(full_dir)
+            file_count = len(files_list)
+        mission_folder = os.path.join(mission_folder, "situation_{}".format(file_count))
+        final_dir = os.path.join(full_dir, "situation_{}".format(file_count))
+        if not os.path.exists(final_dir):
+            os.mkdir(final_dir)
+
+        actions, situations = self._world.get_current_observations()
+        rewards = self._world.get_current_rewards()
+        save_location = self._world.save_situation(os.path.join(mission_folder, 'initial.png'))
+        filenames = [save_location]
+
+        running_mission = mission + "\nPredictions: "
+        for i, (situation, action, reward, attn_weights) in enumerate(zip(situations, actions, rewards,
+                                                                          attention_weights)):
+            # current_attention_weights = []
+            running_mission += action + " (r: {}) ".format(reward)
+            self.initialize_world(situation, mission=running_mission)
+            save_location = self._world.save_situation(os.path.join(mission_folder, 'situation_' + str(i) + '.png'),
+                                                       attention_weights=np.array(attn_weights[0]))
+            filenames.append(save_location)
+
+        # Make a gif of the action sequence.
+        images = []
+        for filename in filenames:
+            images.append(imageio.imread(filename))
+        movie_dir = os.path.join(self.save_directory, mission_folder)
+        imageio.mimsave(os.path.join(movie_dir, 'movie.gif'), images, fps=5)
+
+        # Restore situation.
+        self.initialize_world(current_situation, mission=mission)
 
     def generate_possible_targets(self, referred_size: str, referred_color: str, referred_shape: str):
         """

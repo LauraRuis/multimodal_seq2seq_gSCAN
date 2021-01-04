@@ -763,46 +763,53 @@ def test_rl_interaction(dummy_dataset):
         dummy_dataset.initialize_rl_example(example)
         steps = example["target_commands"].split(",")
         total_reward = 0
+        done = False
         for step in steps:
-            new_situation, reward = dummy_dataset.take_step(step)
+            new_situation, reward, done = dummy_dataset.take_step(step)
             total_reward += reward
         assert total_reward == 1, "incorrect reward: {}".format(total_reward)
+        assert done, "env didn't return done after finishing steps"
         # No change if overgenerating
         dummy_dataset.initialize_rl_example(example)
         steps = example["target_commands"].split(",") + ["walk"]
         total_reward = 0
+        done = False
         for step in steps:
-            new_situation, reward = dummy_dataset.take_step(step)
+            new_situation, reward, done = dummy_dataset.take_step(step)
             total_reward += reward
         assert total_reward == 1, "incorrect reward: {}".format(total_reward)
+        assert done, "env didn't return done after finishing steps"
         # Reward for doing badly
         dummy_dataset.initialize_rl_example(example)
         steps = ["walk"] + example["target_commands"].split(",")
-        while ",".join(steps) == example["target_commands"]:
-            random.shuffle(steps)
         total_reward = 0
         for step in steps:
-            new_situation, reward = dummy_dataset.take_step(step)
+            new_situation, reward, done = dummy_dataset.take_step(step)
             total_reward += reward
         assert 0 <= total_reward < 1, "incorrect reward: {}".format(total_reward)
         # Reward for doing badly
         dummy_dataset.initialize_rl_example(example)
         steps = example["target_commands"].split(",")[1:-1]
         total_reward = 0
+        done = False
         for step in steps:
-            new_situation, reward = dummy_dataset.take_step(step)
+            new_situation, reward, done = dummy_dataset.take_step(step)
             total_reward += reward
         assert 0 <= total_reward < 1, "incorrect reward: {}".format(total_reward)
+        assert not done, "env returned done after finishing steps"
         # Reward for taking too long badly
         dummy_dataset.initialize_rl_example(example)
         steps = example["target_commands"].split(",")
         steps.insert(1, "turn left")
         steps.insert(2, "turn right")
         total_reward = 0
+        done = False
         for step in steps:
-            new_situation, reward = dummy_dataset.take_step(step)
+            new_situation, reward, done = dummy_dataset.take_step(step)
             total_reward += reward
         assert 0 <= total_reward < 1, "incorrect reward: {}".format(total_reward)
+        if not example["manner"]:
+            assert done, "env didn't return done after finishing steps"
     return
 
 
