@@ -66,7 +66,7 @@ class EncoderRNN(nn.Module):
         input_embeddings = input_embeddings.index_select(dim=0, index=perm_idx)
 
         # RNN embedding.
-        packed_input = pack_padded_sequence(input_embeddings, input_lengths, batch_first=True)
+        packed_input = pack_padded_sequence(input_embeddings, input_lengths.cpu(), batch_first=True)
         packed_output, (hidden, cell) = self.lstm(packed_input)
         # hidden, cell [num_layers * num_directions, batch_size, embedding_dim]
         # hidden and cell are unpacked, such that they store the last hidden state for each sequence in the batch.
@@ -263,7 +263,7 @@ class LuongAttentionDecoderRNN(nn.Module):
                        initial_c.index_select(dim=1, index=perm_idx))
 
         # RNN decoder
-        packed_input = pack_padded_sequence(input_embedded, input_lengths, batch_first=True)
+        packed_input = pack_padded_sequence(input_embedded, input_lengths.cpu(), batch_first=True)
         packed_output, (hidden, cell) = self.lstm(packed_input, init_hidden)
         # hidden is [num_layers, batch_size, hidden_size] (pair for hidden and cell)
         lstm_output, _ = pad_packed_sequence(packed_output)  # [max_length, batch_size, hidden_size]
