@@ -17,9 +17,9 @@ Make a virtualenvironment that uses Python 3.7 or higher:
 
 ```virtualenv --python=/usr/bin/python3.7 <path/to/virtualenv>```
 
-Activate the environment and install the requirements with a package manager:
+Activate the environment and install the package
 
-```{ source <path/to/virtualenv>/bin/activate; python3.7 -m pip install -r requirements; }```
+```{ source <path/to/virtualenv>/bin/activate; python3.7 setup.py install; }```
 
 Note that this repository depends on the grounded SCAN implementation to load the dataset from a dataset.txt with the function `GroundedScan.load_dataset_from_file()`.
 Before actually training models, unzip the data you want to use in the folder `data`.
