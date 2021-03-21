@@ -38,6 +38,12 @@ class Vocabulary(object):
     def idx_to_word(self, idx: int) -> str:
         return self._idx_to_word[idx]
 
+    def contains_word(self, word: str) -> bool:
+        if self._word_to_idx[word] != 0:
+            return True
+        else:
+            return False
+
     def add_sentence(self, sentence: List[str]):
         for word in sentence:
             if word not in self._word_to_idx:
@@ -123,7 +129,7 @@ class GroundedScanDataset(object):
                 logger.info("Verbs for adverb: {}".format(adverb))
                 for key, count in items.items():
                     logger.info("   {}: {} occurrences.".format(key, count))
-        self.image_dimensions = self.dataset.situation_image_dimension
+        self.image_dimensions = None
         self.image_channels = 3
         self.split = split
         self.directory = save_directory
