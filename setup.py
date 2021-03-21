@@ -16,8 +16,14 @@ setup(name='MultimodalSeq2seqGscan',
             'xlwt~=1.3.0',
             'torch~=1.8.0',
             'torchvision~=0.9.0',
-            'numpy~=1.20.1',
+            'numpy~=1.2'
+            '0.1',
             'gym~=0.18.0',
-            'matplotlib~=3.3.4'
+            'matplotlib~=3.3.4',
+            'nltk~=3.5',
+            'PyYAML~=5.4.1',
+            'six~=1.15.0',
+            'typing_extensions~=3.7.4.3',
+            'metaphone~=0.6'
       ]
 )
